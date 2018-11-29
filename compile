@@ -1,0 +1,7 @@
+#!/bin/bash
+
+# bash compile para compilar el programa
+# ./frescoPRC para generar los inputs de ejemplo incluido en input.INP
+f95 -o frescoPRC -O dispers-sp.f dispers2.f  frescoPRC.f90 clebsch.f95 steps.f95 form.f95
+
+
