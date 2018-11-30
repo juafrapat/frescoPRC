@@ -1,5 +1,5 @@
   double precision function arm(x,L) !L=lambda, x=cos(tetha) !correcto 24/11
-        !funciona¡ => Armónico esférico L,x con m=0
+        !=> Armónico esférico L,x con m=0
 	double precision x,P(0:L),pi
         integer L,i
         pi=acos(-1d0)
@@ -85,7 +85,7 @@
    real rmax,BETA2,BETA4,BETA6,A 
    real VR,RR,AR !Volumen campo medio solo real
    real dv,drv,dav,W,RW,AW !Volumen dispersivo real/imaginario
-   real VD,RVD,AVD,WD,RD,AD
+   real VD,RVD,AVD,WD,RD,AD!Superficie real(dispersivo) e imaginario
    integer N,i,nexo,sump !Si nexo=0 o sump=0 y nexo =/= 0 entonces cambian los archivos .form
    deltar=DBLE(rmax)/(DBLE(N)-1d0)
    r(0)=0.0d0

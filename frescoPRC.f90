@@ -1,4 +1,6 @@
-!          neutron  on actinides
+!         frescoPRC => Inputs basados en el modelo óptico dispersivo con acoplamiento
+!                      efectivo entre bandas para la descripción de la dispersión de neutrones por
+!                      actínidos par-par con FRESCO.
 	parameter (mxsym=100)
         character*5 NAME
 	character*8 POTL
@@ -41,14 +43,9 @@
         julevels(1:2)=(/0., 2./)
         eilevels(1:3)=(/0.9270, .9663, 1.0564/) !gamma band
         jilevels(1:3)=(/0.,2.,4./)
-        enalevels(1:2)=(/1.0603,1.1057/)
+        enalevels(1:2)=(/1.0603,1.1057/) !NAX band
         jnalevels(1:2)=(/2.0,3.0/)
         POTL= 'dispers2'
-	!nexe =6
-	!nexo =5
-        !nexu=2
-        !nexi=3
-        !nna=2
         escale=1.0
 	nex = nexe + nexo + nexu + nexi + nna
         sump = nexu + nexi + nna !auxiliar para FORM
@@ -86,10 +83,10 @@
         !Lectura de deformaciones => MULTIPLICADAS POR BETA2 COMO EL INPUT DE OPTMAN
         read(40,*) BETA2,BETA4,BETA6
         read(40,*) BETA2EFF,GAMMA2EFF,GAMMANAX,BETA3
-	BETA3 = BETA3/(BETA2)!Paper _!!!!!!
-	BETA2EFF=BETA2EFF/(BETA2)!GS>BETA-0+
-        GAMMA2EFF=GAMMA2EFF/(BETA2)!GS>GAMMA BAND(mu=0)
-        GAMMANAX=GAMMANAX/(BETA2) !!  
+	BETA3 = BETA3/(BETA2)!GS > OCTUPOLE BAND!!!!!!
+	BETA2EFF=BETA2EFF/(BETA2)!GS > BETA BAND
+        GAMMA2EFF=GAMMA2EFF/(BETA2)!GS > GAMMA BAND(mu=0)
+        GAMMANAX=GAMMANAX/(BETA2) ! GS>NON-AXIAL GAMMA BAND (mu=2)
      	DO IE=1,abs(NE)!+nodes
 	 IEN = IE-abs(NE)
 	if(IE<=abs(NE)) then
@@ -142,10 +139,8 @@
 	write(1,'(a,f5.2)') out,escale
 	write(1,'(a)') 'NAMELIST'
         if(E.le.1.20) then 
-     	     !write(1,'(a,f6.3,a)') ' &Fresco  hcm= ',hcm,' rmatch=  20.000 rela='''''
              write(1,75) hcm,rmatch
         else
-             !write(1,'(a,f6.3,a)') ' &Fresco  hcm= ',hcm,' rmatch=  20.000 rela=''3d'''
              write(1,76) hcm,rmatch
         endif	
 	write(1,'(a,i4,a,f8.6)') '    jtmin=   0.0 jtmax=',jtmax,' absend= ',absend

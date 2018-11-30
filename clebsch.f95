@@ -1,5 +1,5 @@
-        SUBROUTINE CLEBSCH(AJ,BJ,CJ,AM,BM,CM,CG)
-	IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+        SUBROUTINE CLEBSCH(AJ,BJ,CJ,AM,BM,CM,CG) !Coeficientes de C.G multiplicados por sqrt(2*JA + 1) y por el factor de fase
+	IMPLICIT DOUBLE PRECISION (A-H,O-Z)      !exijido por el convenio de FRESCO.
 	DIMENSION Q(100,100)
 	DOUBLE PRECISION CG
 	DOUBLE PRECISION AJ,BJ,CJ,AM,BM,CM
