@@ -49,6 +49,7 @@
         escale=1.0
 	nex = nexe + nexo + nexu + nexi + nna
         sump = nexu + nexi + nna !auxiliar para FORM
+        sump2=sump+nexo !auxiliar
         read(40,*) EMIN,EMAX,NE          
         nodes = 7
 	fnodes = 6 
@@ -118,24 +119,28 @@
 
       if(IEN<=0) then  
 
-      fname='fresco-00-'//POTL//'-s'//CHAR(ICHAR('0')+nexe)//',o'//CHAR(ICHAR('0')+nexo)//'-E0000000.in'
-      potname='fresco-00-'//POTL//'-s'//CHAR(ICHAR('0')+nexe)//',o'//CHAR(ICHAR('0')+nexo)//'-E0000000.form'
+        fname='fresco-00-'//POTL//'-s'//CHAR(ICHAR('0')+nexe)//',o'//CHAR(ICHAR('0')+nexo)//'-E0000000.in'
         write(fname(8:8),'(i1)') mod(nint(z),10)
         write(fname(9:9),'(i1)') mod(nint(a),10)
         write(fname(27:33),'(f7.3)') e
         write(fname(27:29),'(i3.3)') int(e)
-        write(0,*) 'Create file <'//trim(fname)//'>'
-        write(potname(8:8),'(i1)') mod(nint(z),10)
-        write(potname(9:9),'(i1)') mod(nint(a),10)
-        write(potname(27:33),'(f7.3)') e
-        write(potname(27:29),'(i3.3)') int(e)
-        write(0,*) 'Create file <'//trim(potname)//'>'
         open(1,form='formatted',file=trim(fname))
-        open(94,form='formatted',file=trim(potname))
-156     format(' ',a38,' ',a38) 
-        write(69,156) trim(fname),trim(potname)
+        write(0,*) 'Create file <'//trim(fname)//'>'
+        if (sump2 .ne. 0) then
+           potname='fresco-00-'//POTL//'-s'//CHAR(ICHAR('0')+nexe)//',o'//CHAR(ICHAR('0')+nexo)//'-E0000000.form'
+           write(potname(8:8),'(i1)') mod(nint(z),10)
+           write(potname(9:9),'(i1)') mod(nint(a),10)
+           write(potname(27:33),'(f7.3)') e
+           write(potname(27:29),'(i3.3)') int(e)
+           write(0,*) 'Create file <'//trim(potname)//'>'        
+           open(94,form='formatted',file=trim(potname)) 
+           write(69,156) trim(fname),trim(potname)
+        else
+	   write(69,156) trim(fname)
+ 	endif
 	out  = 'n+'//trim(NAME)//' with '//trim(POTL)//', s='//CHAR(ICHAR('0')+nexe)//',o='
         out = out//CHAR(ICHAR('0')+nexo)//' at E ='//fname(27:33)//' rela='//rela//' Ex*'
+156     format(' ',a38,' ',a38)
 	write(1,'(a,f5.2)') out,escale
 	write(1,'(a)') 'NAMELIST'
         if(E.le.1.20) then 
@@ -150,7 +155,7 @@
 76      format (' &Fresco  hcm= ',f6.3,' rmatch= ',f6.3,' rela=''3d''')
 	write(1,'(a)') '    chans= 1 smats= 2 xstabl= 1'
 	write(1,15) E
-15	format('    elab=',f10.5,'  pel=1 exl=1 lab=1 lin=1 lex=1 hort=1 /')
+15	format('    elab=',f10.3,'  hort=1 /') !pel=1 exl=1 lab=1 lin=1 lex=1
 	write(1,*) 
  	write(1,16) nex
 16	format('&Partition namep=''n       '' massp=  1.008665 zp=  0 nex=',i3)
@@ -175,9 +180,11 @@
 21	format('&States copyp= 1                       cpot=',i3,' jt=',f4.1,' ptyt=',i2,' et=',f8.4,' KKt=0/')
 222	format('&States copyp= 1                       cpot=',i3,' jt=',f4.1,' ptyt=',i2,' et=',f8.4,' KKt=2/')
  	write(1,'(a)') '&Partition /'
-	write(1,*) 
-            call FORMFACT(VR,RR,AR,dv,drv,dav,W,RW,AW,VD,RVD,AVD,WD,RD,AD,Ngrid,rmatch,BETA2,BETA4,BETA6, &
+	write(1,*)
+        if(sump2 .eq. 0) go to 780
+        call FORMFACT(VR,RR,AR,dv,drv,dav,W,RW,AW,VD,RVD,AVD,WD,RD,AD,Ngrid,rmatch,BETA2,BETA4,BETA6, &
                           real(NA),nexo,sump)
+780     continue
 	write(1,29) kpp,0,0,real(NA),0.0,RC,AC !COULOMB
 29	format('&POT kp=',i3,' type =',i2,' shape=',i2,' p(1:4)=',4f9.4,'/')
 30	format('&POT kp=',i3,' type =',i2,' shape=',i2,' p(1:3)=',3f9.4,'/')
@@ -186,6 +193,7 @@
 34      format('&STEP /')
 	write(1,30) kpp,1,0,VR,RR,AR !NUCLEAR VOLUMEN (campo medio)
 	write(1,31) kpp,11,13, 0.0, RVOL*BETA2,0.0, RVOL*BETA4, 0.0, RVOL*BETA6
+        if(sump2 .eq. 0) go to 777
         if(nexo .eq. 0) then 
 	     write(1,31) kpp,13,7, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0
         else if(nexu .eq. 0 .and. nexi .eq. 0 .and. nna .eq. 0 ) then
@@ -210,9 +218,11 @@
                        nexe,nexo,nexu,nexi,nna)
         endif
         write(1,34)
+777     continue
 	if(abs(W)+abs(dv)>1e-10) then
 	write(1,31) kpp,1,0,dv,drv,dav,W,RW,AW !VOLUMEN real (DISPERSIVO) + imaginario
 	write(1,31) kpp,11,13, 0.,BETA2*RVOL2,0.0,BETA4*RVOL2, 0.,BETA6*RVOL2 !DEFORMADO ROTOR VOLUMEN
+        if(sump2 .eq. 0) go to 778
         if(nexo .eq. 0) then 
 	     write(1,31) kpp,13,9, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0
         else if(nexu .eq. 0 .and. nexi .eq. 0 .and. nna .eq. 0 ) then
@@ -238,8 +248,10 @@
         endif
         write(1,34)
 	endif
+778     continue
 	write(1,31) kpp,2,0,VD,RVD,AVD,WD,RD,AD !SUPERFICIE real (DISPERSIVO) + imaginario
 	write(1,31) kpp,11,13, 0.0,BETA2*RSURF, 0.0,BETA4*RSURF, 0.0,BETA6*RSURF !DEFORMADO ROTOR VOLUMEN
+        if(sump2 .eq. 0) go to 779
         if(nexo .eq. 0) then 
 	     write(1,31) kpp,13,9, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0
         else if(nexu .eq. 0 .and. nexi .eq. 0 .and. nna .eq. 0 ) then
@@ -264,6 +276,7 @@
                        nexe,nexo,nexu,nexi,nna)
         endif
         write(1,34)
+779     continue
 	write(1,31) kpp,3,0,VSO,RSO,ASO, WSO,WRSO,WASO !S.O real (DISPERSIVO) + imaginario
 	if(abs(dvso)>1e-9) write(1,30) kpp,3,0,dvso,WRSO,WASO    
         write(1,32) 
