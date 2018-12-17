@@ -30,7 +30,8 @@ while read input origen; do
   
 done < lista.txt
 rm -f $destino
-
+#Uncomment next line to generate C.S graphs using GRACE in batch mode [script graphs.gr is attached]
+#xmgrace -batch graphs.gr -nosafe -hardcopy -log xy
 
 
 
