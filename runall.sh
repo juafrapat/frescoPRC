@@ -1,8 +1,8 @@
 #!/bin/bash
-FRESCO=frescox
+FRESCO=frescox #Calling FRESCO
 destino=fort.4
-XSECS=xsec_completo.out
-XSECS2=xsec_estados.out
+XSECS=xsec_completo.out # Energy--Xsec_elast---Xsec_absorp---Xsec_react---Xsec_total.
+XSECS2=xsec_estados.out # Data from FRESCO's output fort.13 [Xsec to all excited states one by one].
 fort=fort.13
 fort39=fort.39
 rm -f $destino
@@ -28,7 +28,7 @@ while read input origen; do
   echo $elab $x_gs_0 >> $XSECS2
 #  mv fort.56
   
-done < lista.txt
+done < lista.txt 
 rm -f $destino
 #Uncomment next line to generate C.S graphs using GRACE in batch mode [script graphs.gr is attached]
 #xmgrace -batch graphs.gr -nosafe -hardcopy -log xy
