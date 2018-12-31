@@ -603,20 +603,30 @@ CONTAINS
   ! - Subroutine used to build  &STEPS part of FRESCO's input.
 
   SUBROUTINE steps (mu,BETA2,BETA3,BETA2EFF,GAMMA2EFF,GAMMANAX, &
-  neg,neo,neb,nega,neax)
+  nval,neg,neo,neb,nega,neax,jl)
 
-    INTEGER neg,np,neo,neb,nega,neax,n
+    INTEGER neg,np,neo,neb,nega,neax,n,nval
     DOUBLE PRECISION CG
+    REAL jl(nval)
+    INTEGER J(neg),JO(neo),JB(neb),JG(nega),JAX(neax)
     REAL BETA3,BETA2,BETA2EFF,GAMMA2EFF,GAMMANAX
     CHARACTER*10 banda
     INTEGER i,k,s,f,l,p,o,siz,mu
-    INTEGER IE(6),IEO(5),IEb(2),IEg(3),IEax(2),J(6),LAMDA(4),JMIN,JMAX,JAUX(40),JO(5),JB(2),JG(3),JAX(2)
+    INTEGER IE(6),IEO(5),IEb(2),IEg(3),IEax(2),LAMDA(4),JMIN,JMAX,JAUX(40)
     2   format('&STEP ia=',i2,' ib=',i2,' k=',i1,' str=',1f9.4,'/')
-    J(1:6)=(/0,2,4,6,8,10/) !G.S band
-    JO(1:5)=(/1,3,5,7,9/) !Octupole band
-    JB(1:2)=(/0,2/)  !Beta band
-    JG(1:3)=(/0,2,4/) !Gamma band
-    JAX(1:2)=(/2,3/) !Gamma k=2 band
+    DO i=1,nval
+      IF (i.le.neg) THEN
+        J(i)=INT(jl(i))
+      ELSE IF (i.gt.neg .and. i.le.neg+neo) THEN
+        JO(i-neg)=INT(jl(i))
+      ELSE IF (i.gt.neg+neo .and. i.le.neg+neo+neb) THEN
+        JB(i-neg-neo)=INT(jl(i))
+      ELSE IF (i.gt.neg+neo+neb .and. i.le.neg+neo+neb+nega) THEN
+        JG(i-neg-neo-neb)=INT(jl(i))
+      ELSE IF (i.gt.neg+neo+neb+nega .and. i.le.nval) THEN
+        JAX(i-neg-neo-neb-nega)=INT(jl(i))
+      ENDIF
+    ENDDO
     LAMDA(1:4)=(/2,4,6,3/)
     np=size(LAMDA)
     ! G.S -> G.S --------------------------------------------------------------

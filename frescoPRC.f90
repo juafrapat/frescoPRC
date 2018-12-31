@@ -16,6 +16,10 @@
   CHARACTER*312 ELEMENTS,out
   CHARACTER tab
   CHARACTER*12 pottype(8)
+  REAL,ALLOCATABLE:: Ener_levels(:), J_val(:)
+  INTEGER,ALLOCATABLE:: BAND(:),KBAND(:)
+  INTEGER nexe,nexo,nexu,nexi,nna
+  INTEGER err
   tab = char(9)
 
   data pottype / 'REAL_VOLUME', 'REAL_VOLUME', 'IMAG_VOLUME','REAL_SURFACE', &
@@ -34,23 +38,19 @@
   NAME = symbol(nint(Z))//'000'
   WRITE(6,*) 'Z,A,name =',nint(Z),nint(A),symbol(nint(Z))
   WRITE(NAME(3:5),'(i3.3)') nint(A)
-  READ(40,*) jtmax,hcm0,rmatch,Ngrid
   absend=0.001
-  elevels(1:10) =(/ 0., .04490, .14840, 0.3074, 0.5174, 0.7759, 1.0767, 1.4155, 1.7884, 2.1911/)  ! G.S band
-  jlevels(1:10) =(/ 0., 2., 4., 6., 8., 10., 12., 14., 16., 18. /)
-  eolevels(1:5) =(/ 0.6798, .7313, .8267, 0.9664, 1.1507  /) ! Octopule band - parity (k=0-)
-  jolevels(1:5) =(/ 1., 3., 5., 7., 9. /)
-  eulevels(1:2)=(/0.993, 1.0373/) !beta band
-  julevels(1:2)=(/0., 2./)
-  eilevels(1:3)=(/0.9270, .9663, 1.0564/) !gamma band
-  jilevels(1:3)=(/0.,2.,4./)
-  enalevels(1:2)=(/1.0603,1.1057/) !NAX band
-  jnalevels(1:2)=(/2.0,3.0/)
   POTL= 'dispers2'
   escale=1.0
   nex = nexe + nexo + nexu + nexi + nna
   sump = nexu + nexi + nna
   sump2=sump+nexo
+  ALLOCATE(Ener_levels(nex),J_val(nex),BAND(nex),KBAND(nex), stat=err)
+  CALL error(err,1)
+  DO I=1,nex
+    READ(40,'(E12.5,F3.2,I5,I5)') Ener_levels(I),J_val(I),KBAND(I),BAND(I)
+  ENDDO
+  Ener_levels=Ener_levels/1000 !Reading in KeV but FRESCO read it in MeV.
+  READ(40,*) jtmax,hcm0,rmatch,Ngrid
   READ(40,*) EMIN,EMAX,NE
   nodes = 7
   fnodes = 6
@@ -151,23 +151,10 @@
 		    WRITE(1,17) NAME,A,Z
 		    17	FORMAT('            namet=''',a8,''' masst=',f10.6,' zt=',f5.1,' qval=  0.000/')
  		    WRITE(1,'(a)') '&States jp= 0.5 ptyp= 1 ep=  0.000000  cpot=  1 jt= 0.0 ptyt= 1 et= 0.000000 KKt=0/'
- 		    DO il = 2,nexe
-   		     WRITE(1,21) kpp,jlevels(il),+1,elevels(il)*escale
-		    ENDDO
- 		    DO il = 1,nexo
-   	       WRITE(1,21) kpp,jolevels(il),-2,eolevels(il)*escale
-		    ENDDO
-        DO il = 1,nexu
-   		     WRITE(1,21) kpp,julevels(il),+3,eulevels(il)*escale
-		    ENDDO
-  	    DO il = 1,nexi
-   		     WRITE(1,21) kpp,jilevels(il),+4,eilevels(il)*escale
-		    ENDDO
-  	    DO il = 1,nna
-   		     WRITE(1,222) kpp,jnalevels(il),+5,enalevels(il)*escale
-		    ENDDO
-	      21	FORMAT('&States copyp= 1                       cpot=',i3,' jt=',f4.1,' ptyt=',i2,' et=',f8.4,' KKt=0/')
-		    222	FORMAT('&States copyp= 1                       cpot=',i3,' jt=',f4.1,' ptyt=',i2,' et=',f8.4,' KKt=2/')
+        DO I=2,nex
+          WRITE(1,21) 1,J_val(I),BAND(I),Ener_levels(I),KBAND(I)
+        ENDDO
+        21	FORMAT('&States copyp= 1                       cpot=',i3,' jt=',f4.1,' ptyt=',i2,' et=',f8.4,' KKt=',i1,'/')
  		    WRITE(1,'(a)') '&Partition /'
 		    WRITE(1,*)
   	    IF(sump2 .EQ. 0) GO TO 780
@@ -192,19 +179,19 @@
   	    ENDIF
   	    IF(nexo .NE. 0) THEN
     	     CALL steps(2,BETA2,BETA3,BETA2EFF,GAMMA2EFF,GAMMANAX, &
-                        nexe,nexo,nexu,nexi,nna)
+                        nex,nexe,nexo,nexu,nexi,nna,J_val)
         ENDIF
         IF(nexu .NE. 0) THEN
     	     CALL steps(3,BETA2,BETA3,BETA2EFF,GAMMA2EFF,GAMMANAX, &
-                        nexe,nexo,nexu,nexi,nna)
+                        nex,nexe,nexo,nexu,nexi,nna,J_val)
         ENDIF
   	    IF(nexi .NE. 0) THEN
     	      CALL steps(4,BETA2,BETA3,BETA2EFF,GAMMA2EFF,GAMMANAX, &
-                        nexe,nexo,nexu,nexi,nna)
+                        nex,nexe,nexo,nexu,nexi,nna,J_val)
         ENDIF
         IF(nna .NE. 0) THEN
     	      CALL steps(5,BETA2,BETA3,BETA2EFF,GAMMA2EFF,GAMMANAX, &
-                       	nexe,nexo,nexu,nexi,nna)
+                       	nex,nexe,nexo,nexu,nexi,nna,J_val)
 	      ENDIF
   	    WRITE(1,34)
 		    777  continue
@@ -221,19 +208,19 @@
              ENDIF
   		       IF(nexo .NE. 0) THEN
     	          CALL steps(2,BETA2,BETA3,BETA2EFF,GAMMA2EFF,GAMMANAX, &
-               		             nexe,nexo,nexu,nexi,nna)
+               		          nex,nexe,nexo,nexu,nexi,nna,J_val)
     	       ENDIF
   		       IF(nexu .NE. 0) THEN
     		        CALL steps(3,BETA2,BETA3,BETA2EFF,GAMMA2EFF,GAMMANAX, &
-               	              nexe,nexo,nexu,nexi,nna)
+               	            nex,nexe,nexo,nexu,nexi,nna,J_val)
   	         ENDIF
   		       IF(nexi .NE. 0) THEN
     	          CALL steps(4,BETA2,BETA3,BETA2EFF,GAMMA2EFF,GAMMANAX, &
-                	            nexe,nexo,nexu,nexi,nna)
+                	          nex,nexe,nexo,nexu,nexi,nna,J_val)
   	         ENDIF
   		       IF(nna .NE. 0) THEN
   			        CALL steps(5,BETA2,BETA3,BETA2EFF,GAMMA2EFF,GAMMANAX, &
-                	            nexe,nexo,nexu,nexi,nna)
+                	          nex,nexe,nexo,nexu,nexi,nna,J_val)
              ENDIF
     	       WRITE(1,34)
 	       ENDIF
@@ -250,19 +237,19 @@
   	     ENDIF
   	     IF(nexo .NE. 0) THEN
            CALL steps(2,BETA2,BETA3,BETA2EFF,GAMMA2EFF,GAMMANAX, &
-             		       nexe,nexo,nexu,nexi,nna)
+             		       nex,nexe,nexo,nexu,nexi,nna,J_val)
   	     ENDIF
   	     IF(nexu .NE. 0) THEN
     	     CALL steps(3,BETA2,BETA3,BETA2EFF,GAMMA2EFF,GAMMANAX, &
-             		       nexe,nexo,nexu,nexi,nna)
+             		       nex,nexe,nexo,nexu,nexi,nna,J_val)
          ENDIF
   	     IF(nexi .NE. 0) THEN
     	     CALL steps(4,BETA2,BETA3,BETA2EFF,GAMMA2EFF,GAMMANAX, &
-               	       nexe,nexo,nexu,nexi,nna)
+               	       nex,nexe,nexo,nexu,nexi,nna,J_val)
          ENDIF
   	     IF(nna .NE. 0) THEN
     	      CALL steps(5,BETA2,BETA3,BETA2EFF,GAMMA2EFF,GAMMANAX, &
-               	        nexe,nexo,nexu,nexi,nna)
+               	       nex,nexe,nexo,nexu,nexi,nna,J_val)
   	     ENDIF
   	     WRITE(1,34)
 		     779  CONTINUE
@@ -272,8 +259,10 @@
 		     WRITE(1,*) '&Overlap /'
 		     WRITE(1,*) '&Coupling /'
 		     CLOSE(1)
-     ENDIF  
+     ENDIF
    ENDDO
+   DEALLOCATE(Ener_levels,J_val,BAND,KBAND,stat=err)
+   CALL error(err,2)
    CLOSE(69)
    CLOSE(40)
    CLOSE(10)
