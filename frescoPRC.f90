@@ -8,10 +8,8 @@
   DOUBLE PRECISION CG
   CHARACTER*100 fname,pname,h,potname
   CHARACTER*2 rela,SYMBOL(mxsym),PT(4)
-  REAL elevels(20), jlevels(20),enodes(10),val(4,10,8), enalevels(20),jnalevels(20)
-  REAL eolevels(20), jolevels(20)
-  REAL eulevels(20), julevels(20)
-  REAL eilevels(20), jilevels(20),lambdaHF,lambdaso
+  REAL enodes(10),val(4,10,8)
+  REAL lambdaHF,lambdaso
   INTEGER za,shape,kpnodes(10),fnodes,mu,i, sump
   CHARACTER*312 ELEMENTS,out
   CHARACTER tab
