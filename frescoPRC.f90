@@ -8,9 +8,8 @@
   DOUBLE PRECISION CG
   CHARACTER*100 fname,pname,h,potname
   CHARACTER*2 rela,SYMBOL(mxsym),PT(4)
-  REAL enodes(10),val(4,10,8)
   REAL lambdaHF,lambdaso
-  INTEGER za,shape,kpnodes(10),fnodes,mu,i, sump
+  INTEGER za,shape,mu,i, sump
   CHARACTER*312 ELEMENTS,out
   CHARACTER tab
   CHARACTER*12 pottype(8)
@@ -37,7 +36,7 @@
   WRITE(6,*) 'Z,A,name =',nint(Z),nint(A),symbol(nint(Z))
   WRITE(NAME(3:5),'(i3.3)') nint(A)
   absend=0.001
-  POTL= 'dispers2'
+  POTL= 'DOMEIC16'
   escale=1.0
   nex = nexe + nexo + nexu + nexi + nna
   sump = nexu + nexi + nna
@@ -47,18 +46,14 @@
   DO I=1,nex
     READ(40,'(E12.5,F3.2,I5,I5)') Ener_levels(I),J_val(I),KBAND(I),BAND(I)
   ENDDO
-  Ener_levels=Ener_levels/1000 !Reading in KeV but FRESCO read it in MeV.
+  Ener_levels=Ener_levels/1000 !Reading in KeV but FRESCO reads it in MeV.
   READ(40,*) jtmax,hcm0,rmatch,Ngrid
   READ(40,*) EMIN,EMAX,NE
-  nodes = 7
-  fnodes = 6
-  enodes(1:7) = (/ 0.01, 1., 5., 10., 20., 50. , 200./)
-  kpnodes(1:7) = (/ 10, 11, 15, 20, 30, 32, 34 /)
   kpp=1
   IF(NAME(1:1) ==' ') NAME(1:5)=NAME(2:5)//' '
   pname = POTL//'-'//trim(NAME)//'-parameters.txt'
   OPEN(10,form='formatted',file=trim(pname))
-  OPEN(69,form='formatted',file='lista.txt' )
+  OPEN(69,form='formatted',file='lista.txt' ) !Auxiliar .txt to run FRESCO's inputs for different energies.
   WRITE(10,1) POTL,NAME
   1	FORMAT('####### OPTICAL PARAMETERS for ',A8,' ########'/'#'/'#     neutron on ',a5,/'#'/ &
         & '#Energy    V     rv    av     dV    drv   dav      W     rw    aw     ', &
@@ -107,16 +102,14 @@
 	   10	FORMAT(f7.3, 6(f8.3,2f6.3),2f8.3,2f6.3,2f6.3)
      IF(IEN<=0) THEN
   	    fname='fresco-00-'//POTL//'-s'//CHAR(ICHAR('0')+nexe)//',o'//CHAR(ICHAR('0')+nexo)//'-E0000000.in'
-        WRITE(fname(8:8),'(i1)') MOD(NINT(z),10)
-  	    WRITE(fname(9:9),'(i1)') MOD(NINT(a),10)
+        WRITE(fname(8:9),'(i2)') NINT(Z) ! Z=>10
         WRITE(fname(27:33),'(f7.3)') e
         WRITE(fname(27:29),'(i3.3)') INT(e)
         OPEN(1,FORM='formatted',FILE=TRIM(fname))
 		    WRITE(0,*) 'Create file <'//TRIM(fname)//'>'
         IF (sump2 .NE. 0) THEN
     	     potname='fresco-00-'//POTL//'-s'//CHAR(ICHAR('0')+nexe)//',o'//CHAR(ICHAR('0')+nexo)//'-E0000000.form'
-           WRITE(potname(8:8),'(i1)') MOD(NINT(z),10)
-           WRITE(potname(9:9),'(i1)') MOD(NINT(a),10)
+           WRITE(potname(8:9),'(i2)') NINT(Z) !Z=>10
      	     WRITE(potname(27:33),'(f7.3)') e
            WRITE(potname(27:29),'(i3.3)') INT(e)
      	     WRITE(0,*) 'Create file <'//TRIM(potname)//'>'
@@ -125,10 +118,9 @@
         ELSE
 	   	     WRITE(69,156) TRIM(fname)
  		    ENDIF
-		    out  = 'n+'//TRIM(NAME)//' with '//TRIM(POTL)//', s='//CHAR(ICHAR('0')+nexe)//',o='
-        out = out//CHAR(ICHAR('0')+nexo)//' at E ='//fname(27:33)//' rela='//rela//' Ex*'
+		    out  = 'n+'//TRIM(NAME)//' with '//TRIM(POTL)//''
 		    156  FORMAT(' ',a38,' ',a38)
-		    WRITE(1,'(a,f5.2)') out,escale
+		    WRITE(1,'(a38)') out
 		    WRITE(1,'(a)') 'NAMELIST'
         IF(E.LE.1.20) THEN
     	     WRITE(1,75) hcm,rmatch
