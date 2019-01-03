@@ -132,7 +132,7 @@
 		    14	FORMAT('    thmin=0.0 thinc=2 thmax=000. iblock=',i3)
 		    75  FORMAT(' &Fresco  hcm= ',f6.3,' rmatch= ',f6.3,' rela=''''')
 		    76  FORMAT(' &Fresco  hcm= ',f6.3,' rmatch= ',f6.3,' rela=''3d''')
-		    WRITE(1,'(a)') '    chans= 1 smats= 2 xstabl= 1'
+		    !WRITE(1,'(a)') '    chans= 1 smats= 2 xstabl= 1'
 		    WRITE(1,15) E
 		    15	FORMAT('    elab=',f10.3,'  hort=1 /')
 		    WRITE(1,*)
