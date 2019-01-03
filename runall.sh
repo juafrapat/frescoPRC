@@ -17,7 +17,7 @@ while read input origen; do
  base=${input%%.*}
  output=$base.out
 # Comment next line if you will make a run without any excited band (only G.S band).
-# ln -fs $origen $destino
+ ln -fs $origen $destino
   elab=`cat  $input | egrep elab | awk '{print $2 }'`
   echo Running energy: $elab MeV
 
