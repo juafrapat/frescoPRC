@@ -7,6 +7,7 @@
   CHARACTER*8 POTL
   DOUBLE PRECISION CG
   CHARACTER*100 fname,pname,h,potname
+  CHARACTER*20 input_file
   CHARACTER*2 rela,SYMBOL(mxsym),PT(4)
   REAL lambdaHF,lambdaso
   INTEGER za,shape,mu,i, sump
@@ -16,7 +17,7 @@
   REAL,ALLOCATABLE:: Ener_levels(:), J_val(:)
   INTEGER,ALLOCATABLE:: BAND(:),KBAND(:)
   INTEGER nexe,nexo,nexu,nexi,nna
-  INTEGER err
+  INTEGER err,grace_val
   tab = char(9)
 
   data pottype / 'REAL_VOLUME', 'REAL_VOLUME', 'IMAG_VOLUME','REAL_SURFACE', &
@@ -29,7 +30,9 @@
      & 'TL PB BI PO AT RN FR RA AC TH PA  U NP PU AM CM BK CF ES FM'
   READ (ELEMENTS,1021)(SYMBOL(i), i=1, mxsym)
   1021 FORMAT (300(A2,1X))
-  OPEN(40,STATUS='old',FILE='input.INP')
+  WRITE(6,*) 'Please write the name of the input file.'
+  READ(*,*) input_file
+  OPEN(40,STATUS='old',FILE=input_file)
   READ(40,*) Z,A,eferm
   READ(40,*) nexe,nexo,nexu,nexi,nna
   NAME = symbol(nint(Z))//'000'
@@ -76,6 +79,8 @@
             !Deformation parameters => Multiplied by BETA_{20} like in OPTMAN input.
   READ(40,*) BETA2,BETA4,BETA6
   READ(40,*) BETA2EFF,GAMMA2EFF,GAMMANAX,BETA3
+  READ(40,*) grace_val
+  IF (grace_val .EQ. 1) CALL GRACE
   BETA3 = BETA3/(BETA2)!GS > OCTUPOLE BAND
   BETA2EFF=BETA2EFF/(BETA2)!GS > BETA BAND
   GAMMA2EFF=GAMMA2EFF/(BETA2)!GS > GAMMA BAND(mu=0)
@@ -251,6 +256,10 @@
 		     CLOSE(1)
      ENDIF
    ENDDO
+   IF (grace_val .EQ. 1) THEN
+     CALL GRACE
+     WRITE(6,*) 'graphs.gr file created: C.S graphs will be generated using xmgrace'
+   ENDIF
    DEALLOCATE(Ener_levels,J_val,BAND,KBAND,stat=err)
    CALL error(err,2)
    CLOSE(69)

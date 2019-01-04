@@ -38,17 +38,16 @@ while read input origen; do
   cat $output >> $outfile
   rm -f $output
 done < $lista
-echo $input
-if [ -e $grace_file ]; then
-  $GRACE -batch $grace_file -nosafe -hardcopy -log x
-  mv total.eps Results; mv elastic.eps Results; mv absorption.eps Results; mv $outfile Results
-fi
-cat $aux $XSECS > $XSECS3
-mv $XSECS3 Results; mv $XSECS2 Results
 if [ -d Results ]; then
     echo 'Results of the run moved to "Results" folder'
 else   
     mkdir  Results
     echo 'Results of the run moved to "Results" folder'
 fi
-rm -f $destino; rm -f $aux; rm -f $XSECS;
+if [ -e $grace_file ]; then
+  $GRACE -batch $grace_file -nosafe -hardcopy 
+  mv total.eps Results; mv elastic.eps Results; mv absorption.eps Results; mv $outfile Results
+fi
+cat $aux $XSECS > $XSECS3
+mv $XSECS3 Results; mv $XSECS2 Results
+rm -f $destino; rm -f $aux; rm -f $XSECS; rm -f $grace_file

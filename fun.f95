@@ -821,4 +821,55 @@ CONTAINS
     ENDIF
     RETURN
   END SUBROUTINE error
+
+  ! - Generate xmgrace's input in case of drawing cross section graphs at the end of the run.
+  SUBROUTINE GRACE
+    OPEN(94,form='formatted',file='graphs.gr')
+    WRITE(94,*) '#Generate .eps archives with cross sections graphs.'
+    WRITE(94,*) 'READ BLOCK "xsec_completo.out"'
+    WRITE(94,*) 'FOCUS G0'
+    WRITE(94,*) 'BLOCK XY "1:2"'
+    WRITE(94,*) 's0 symbol 1'
+    WRITE(94,*) 's0 symbol color 2'
+    WRITE(94,*) 's0 legend "Elastic cross section"'
+    WRITE(94,*) 'world ymax MAX(s0.y)+0.05*MAX(s0.y)'
+    WRITE(94,*) 'world ymin MIN(s0.y)-0.05*MIN(s0.y)'
+    WRITE(94,*) 'legend 0.7, 0.65'
+    WRITE(94,*) 'title "PRC2016 Elastic C.S"'
+    WRITE(94,*) 'xaxis label "Energy (MeV)"'
+    WRITE(94,*) 'yaxis label "Cross section (mb)"'
+    WRITE(94,*) 'VIEW 0.15, 0.15, 1.15, 0.85'
+    WRITE(94,*) 'PRINT TO "elastic.eps"'
+    WRITE(94,*) 'PRINT'
+    WRITE(94,*) '##################################################'
+    WRITE(94,*) 'KILL G0.s0'
+    WRITE(94,*) 'FOCUS G1'
+    WRITE(94,*) 'BLOCK XY "1:3"'
+    WRITE(94,*) 's0 symbol 4'
+    WRITE(94,*) 's0 symbol color 3'
+    WRITE(94,*) 's0 legend "Absorption cross section"'
+    WRITE(94,*) 'world ymax MAX(s0.y)+0.05*MAX(s0.y)'
+    WRITE(94,*) 'world ymin MIN(s0.y)-0.05*MIN(s0.y)'
+    WRITE(94,*) 'title "PRC2016 Absorption C.S"'
+    WRITE(94,*) 'xaxis label "Energy (MeV)"'
+    WRITE(94,*) 'yaxis label "Cross section (mb)"'
+    WRITE(94,*) 'PRINT TO "absorption.eps"'
+    WRITE(94,*) 'PRINT'
+    WRITE(94,*) '###################################################'
+    WRITE(94,*) 'KILL G1.s0'
+    WRITE(94,*) 'KILL G0.s0'
+    WRITE(94,*) 'FOCUS G2'
+    WRITE(94,*) 'BLOCK XY "1:5"'
+    WRITE(94,*) 's0 symbol 1'
+    WRITE(94,*) 's0 symbol color 4'
+    WRITE(94,*) 's0 legend "Total cross section"'
+    WRITE(94,*) 'world ymax MAX(s0.y)+0.05*MAX(s0.y)'
+    WRITE(94,*) 'world ymin MIN(s0.y)-0.05*MIN(s0.y)'
+    WRITE(94,*) 'title "PRC2016 Total C.S"'
+    WRITE(94,*) 'xaxis label "Energy (MeV)"'
+    WRITE(94,*) 'yaxis label "Cross section (mb)"'
+    WRITE(94,*) 'PRINT TO "total.eps"'
+    WRITE(94,*) 'PRINT'
+    CLOSE(94)
+  END SUBROUTINE GRACE
 END MODULE modulo
