@@ -1,18 +1,16 @@
 #!/bin/bash
 FRESCO=frescox #Calling FRESCO
-GRACE=xmgrace
+GRACE=python
 destino=fort.4
 XSECS2=xsec_states.out # Data from FRESCO's output fort.13 [Xsec to all excited states one by one].
 XSECS3=Cross_sections.out # Cross section output for each energy.
 fort=fort.13
 fort39=fort.39
 lista=lista.txt
-grace_file=graphs.gr
+grace_file=graphs.py
 outfile=outfile.out
-aux=aux.dat
-XSECS=xsec_completo.out
-rm -f $destino; rm -f $XSECS; rm -f $XSECS2; rm -f $outfile; rm -f $aux; 
-echo 'Energy Elastic    Absorption   Reaction    Total    (MeV/mb)' >> $aux
+rm -f $destino; rm -f $XSECS; rm -f $XSECS2; rm -f $outfile;  
+echo "Energy Elastic    Absorption   Reaction    Total    (MeV/mb)" > $XSECS3
 while read input origen; do
  base=${input%%.*}
  output=$base.out
@@ -33,7 +31,7 @@ while read input origen; do
   echo 'Reaction:' $xreac mb
   echo 'Absorption:' $xabs mb
   echo ""
-  echo $elab $xel $xabs $xreac $xtot  >> $XSECS
+  echo $elab $xel $xabs $xreac $xtot  >> $XSECS3
   echo $elab $x_gs_0 >> $XSECS2
   cat $output >> $outfile
   rm -f $output
@@ -45,9 +43,8 @@ else
     echo 'Results of the run moved to "Results" folder'
 fi
 if [ -e $grace_file ]; then
-  $GRACE -batch $grace_file -nosafe -hardcopy 
-  mv total.eps Results; mv elastic.eps Results; mv absorption.eps Results
+  $GRACE  $grace_file 
+  mv Total_CS.eps Results; mv Elastic_CS.eps Results; mv Absorption_CS.eps Results
 fi
-cat $aux $XSECS > $XSECS3
 mv $XSECS3 Results; mv $XSECS2 Results; mv $outfile Results
-rm -f $destino; rm -f $aux; rm -f $XSECS; rm -f $grace_file
+rm -f $destino; rm -f $grace_file

@@ -81,7 +81,6 @@
   READ(40,*) rso,aso,rc,ac
   READ(40,*) BETA2,BETA4,BETA6
   READ(40,*) grace_val
-  IF (grace_val .EQ. 1) CALL GRACE
   !///////////////////////////////////////////////////////////////////////////////////
   num_bands=1
   or_val(1)=BAND(1)
@@ -281,8 +280,8 @@
      ENDIF
    ENDDO
    IF (grace_val .EQ. 1) THEN
-     CALL GRACE
-     WRITE(6,*) 'graphs.gr file created: C.S graphs will be generated using xmgrace'
+     CALL Graphs
+     WRITE(6,*) 'graphs.py created: C.S graphs will be generated using Python (matplotlib)'
    ENDIF
    DEALLOCATE(Ener_levels,J_val,BAND,BETA_EFF,KBAND,or_val, &
    counts,indexx,stat=err)
