@@ -2,9 +2,10 @@ MODULE modulo
   !***********************************************************************************************
   !* This module contains all functions and subroutines for frescoPRC program:                   *
   !*                                                                                             *
-  !* Subroutine CLEBSCH: Compute C-G coefficients with a couple extra factors                    *
-  !*                     DSQRT(2*AJ+1) and ((-1)**((AJ-CJ+dabs(AJ-CJ))/2))                       *
-  !*                     required by FRESCO's convention.                                        *
+  !* Subroutine CLEBSCH: Compute C-G coefficients                                                *
+  !*                                                                                             *
+  !* Subroutine wigner: Compute matrix element of Wigner's functions accoding to B.15 from       *
+  !*                    PRC 94 6 (2016), 064605 (even-even nuclei).                                                 *
   !*                                                                                             *
   !* Dispersive functions pack: Calculation of Analytical dispersive integrals.                  *
   !*                                                                                             *
@@ -69,11 +70,48 @@ CONTAINS
     P=1-2*(IP-IP/2*2)
     CG=P*X*DSQRT(FN)
     CG=CG*DSQRT(2*CJ+1)*(-1)**IDNINT(AJ-BJ-CM)
-    CG=CG*((-1)**((AJ-CJ+dabs(AJ-CJ))/2))
-    CG=CG*DSQRT(2*AJ+1)
     20	CONTINUE
     RETURN
   END SUBROUTINE CLEBSCH
+
+  SUBROUTINE wigner(J1_val,J2_val,K1_val,K2_val,lamd_val,l1,l2, &
+  reduced_matriz_element)
+    DOUBLE PRECISION CG(4)
+    DOUBLE PRECISION reduced_matriz_element
+    REAL J1_val,J2_val,lamd_val
+    INTEGER K1_val,K2_val,l1,l2
+    INTEGER delta, factor,mu
+    DOUBLE PRECISION f1
+    INTEGER f2
+    IF (K2_val==0) THEN
+      delta=1
+    ELSE
+      delta=0
+    ENDIF
+    IF (K1_val==0) THEN
+      delta1=1
+    ELSE
+      delta1=0
+    ENDIF
+    IF (K2_val==2 .OR. K1_val==2) THEN
+      mu=2; factor=1
+    ELSE
+      mu=0; factor=2
+    ENDIF
+    CALL CLEBSCH(DBLE(J2_val),DBLE(lamd_val),DBLE(J1_val),DBLE(K2_val), &
+    DBLE(mu),DBLE(K1_val),CG(1))
+    CALL CLEBSCH(DBLE(J2_val),DBLE(lamd_val),DBLE(J1_val),-1d0*DBLE(K2_val), &
+    DBLE(mu),DBLE(K1_val),CG(2))
+    CALL CLEBSCH(DBLE(J2_val),DBLE(lamd_val),DBLE(J1_val),DBLE(K2_val), &
+    DBLE(mu),-1d0*DBLE(K1_val),CG(3))
+    CALL CLEBSCH(DBLE(J2_val),DBLE(lamd_val),DBLE(J1_val),-1d0*DBLE(K2_val), &
+    DBLE(mu),-1d0*DBLE(K1_val),CG(4))
+    f1= DSQRT(2*DBLE(J2_val)+1d0)/(DSQRT((1d0+DBLE(delta1))*(1d0+DBLE(delta))))
+    f2= (1+(-1)**(lamd_val+K2_val+l1+l2))/2
+    reduced_matriz_element=f1*f2*(CG(1) + ((-1)**(J2_val+l2))*CG(2) + &
+    ((-1)**(J1_val+l1))*CG(3) + ((-1)**(J1_val+J2_val+l1+l2))*CG(4))
+    reduced_matriz_element=reduced_matriz_element/factor
+  END SUBROUTINE wigner
 
   !     *******************************************************
   !     START of dispersive PACK
@@ -539,50 +577,50 @@ CONTAINS
       DO i=0,N-1,1
         WRITE(94,10) gaussv(REAL(r(i)),-VR,RR*(A**(1./3.)),AR,2,BETA2,BETA4,BETA6)
       END DO
-   ENDIF
-   IF(nexo .NE. 0) THEN
-     WRITE(94,*) '!Real volume'
-     WRITE(94,20) N,deltar,R(0)
-     DO i=0,N-1,1
-       WRITE(94,10) gaussv(REAL(r(i)),-VR,RR*(A**(1./3.)),AR,2,BETA2,BETA4,BETA6)
-     END DO
-   ENDIF
-   IF(sump .NE. 0) THEN
-     WRITE(94,*) '!Dispersive real and imaginary volume'
-     WRITE(94,20) N,deltar,R(0)
-     DO i=0,N-1,1
-       WRITE(94,10) gaussv(REAL(r(i)),-dv,drv*(A**(1./3.)),dav,2,BETA2,BETA4,BETA6)
-       WRITE(94,10) gaussv(REAL(r(i)),-W,RW*(A**(1./3.)),AW,2,BETA2,BETA4,BETA6)
-     END DO
-   ENDIF
-   IF(nexo .NE. 0) THEN
-     WRITE(94,*) '!Dispersive real and imaginary volume'
-     WRITE(94,20) N,deltar,R(0)
-     DO i=0,N-1,1
-       WRITE(94,10) gaussv(REAL(r(i)),-dv,drv*(A**(1./3.)),dav,2,BETA2,BETA4,BETA6)
-       WRITE(94,10) gaussv(REAL(r(i)),-W,RW*(A**(1./3.)),AW,2,BETA2,BETA4,BETA6)
-     END DO
-   ENDIF
-   IF(sump .NE. 0) THEN
-     WRITE(94,*) '!Dispersive real and imaginary surface'
-     WRITE(94,20) N,deltar,R(0)
-     DO i=0,N-1,1
-       WRITE(94,10) gausss(REAL(r(i)),-VD,RVD*(A**(1./3.)),AVD,2,BETA2,BETA4,BETA6)
-       WRITE(94,10) gausss(REAL(r(i)),-WD,RD*(A**(1./3.)),AD,2,BETA2,BETA4,BETA6)
-     END DO
-   ENDIF
-   IF(nexo .NE. 0) THEN
-     WRITE(94,*) '!Dispersive real and imaginary surface'
-     WRITE(94,20) N,deltar,R(0)
-     DO i=0,N-1,1
-       WRITE(94,10) gausss(REAL(r(i)),-VD,RVD*(A**(1./3.)),AVD,2,BETA2,BETA4,BETA6)
-       WRITE(94,10) gausss(REAL(r(i)),-WD,RD*(A**(1./3.)),AD,2,BETA2,BETA4,BETA6)
-     END DO
-   ENDIF
-   20 FORMAT(' ',i2,' ',f9.6,' ',f9.6)
-   10 FORMAT(' ',f9.6)
-   CLOSE(94)
-   RETURN
+    ENDIF
+    IF(nexo .NE. 0) THEN
+      WRITE(94,*) '!Real volume'
+      WRITE(94,20) N,deltar,R(0)
+      DO i=0,N-1,1
+        WRITE(94,10) gaussv(REAL(r(i)),-VR,RR*(A**(1./3.)),AR,2,BETA2,BETA4,BETA6)
+      END DO
+    ENDIF
+    IF(sump .NE. 0) THEN
+      WRITE(94,*) '!Dispersive real and imaginary volume'
+      WRITE(94,20) N,deltar,R(0)
+      DO i=0,N-1,1
+        WRITE(94,10) gaussv(REAL(r(i)),-dv,drv*(A**(1./3.)),dav,2,BETA2,BETA4,BETA6)
+        WRITE(94,10) gaussv(REAL(r(i)),-W,RW*(A**(1./3.)),AW,2,BETA2,BETA4,BETA6)
+      END DO
+    ENDIF
+    IF(nexo .NE. 0) THEN
+      WRITE(94,*) '!Dispersive real and imaginary volume'
+      WRITE(94,20) N,deltar,R(0)
+      DO i=0,N-1,1
+        WRITE(94,10) gaussv(REAL(r(i)),-dv,drv*(A**(1./3.)),dav,2,BETA2,BETA4,BETA6)
+        WRITE(94,10) gaussv(REAL(r(i)),-W,RW*(A**(1./3.)),AW,2,BETA2,BETA4,BETA6)
+      END DO
+    ENDIF
+    IF(sump .NE. 0) THEN
+      WRITE(94,*) '!Dispersive real and imaginary surface'
+      WRITE(94,20) N,deltar,R(0)
+      DO i=0,N-1,1
+        WRITE(94,10) gausss(REAL(r(i)),-VD,RVD*(A**(1./3.)),AVD,2,BETA2,BETA4,BETA6)
+        WRITE(94,10) gausss(REAL(r(i)),-WD,RD*(A**(1./3.)),AD,2,BETA2,BETA4,BETA6)
+      END DO
+    ENDIF
+    IF(nexo .NE. 0) THEN
+      WRITE(94,*) '!Dispersive real and imaginary surface'
+      WRITE(94,20) N,deltar,R(0)
+      DO i=0,N-1,1
+        WRITE(94,10) gausss(REAL(r(i)),-VD,RVD*(A**(1./3.)),AVD,2,BETA2,BETA4,BETA6)
+        WRITE(94,10) gausss(REAL(r(i)),-WD,RD*(A**(1./3.)),AD,2,BETA2,BETA4,BETA6)
+      END DO
+    ENDIF
+    20 FORMAT(' ',i2,' ',f9.6,' ',f9.6)
+    10 FORMAT(' ',f9.6)
+    CLOSE(94)
+    RETURN
   END SUBROUTINE FORMFACT
 
   ! **************************************************************************
@@ -602,211 +640,44 @@ CONTAINS
 
   ! - Subroutine used to build  &STEPS part of FRESCO's input.
 
-  SUBROUTINE steps (mu,BETA2,BETA3,BETA2EFF,GAMMA2EFF,GAMMANAX, &
-  nval,neg,neo,neb,nega,neax,jl)
-
-    INTEGER neg,np,neo,neb,nega,neax,n,nval
-    DOUBLE PRECISION CG
-    REAL jl(nval)
-    INTEGER J(neg),JO(neo),JB(neb),JG(nega),JAX(neax)
-    REAL BETA3,BETA2,BETA2EFF,GAMMA2EFF,GAMMANAX
-    CHARACTER*10 banda
-    INTEGER i,k,s,f,l,p,o,siz,mu
-    INTEGER IE(6),IEO(5),IEb(2),IEg(3),IEax(2),LAMDA(4),JMIN,JMAX,JAUX(40)
-    2   format('&STEP ia=',i2,' ib=',i2,' k=',i1,' str=',1f9.4,'/')
-    DO i=1,nval
-      IF (i.le.neg) THEN
-        J(i)=INT(jl(i))
-      ELSE IF (i.gt.neg .and. i.le.neg+neo) THEN
-        JO(i-neg)=INT(jl(i))
-      ELSE IF (i.gt.neg+neo .and. i.le.neg+neo+neb) THEN
-        JB(i-neg-neo)=INT(jl(i))
-      ELSE IF (i.gt.neg+neo+neb .and. i.le.neg+neo+neb+nega) THEN
-        JG(i-neg-neo-neb)=INT(jl(i))
-      ELSE IF (i.gt.neg+neo+neb+nega .and. i.le.nval) THEN
-        JAX(i-neg-neo-neb-nega)=INT(jl(i))
+  SUBROUTINE steps(J1,J2,p1,p2,I1,I2,K1,K2,BETA_VAL)
+    REAL J1,J2,lamd,BETA_VAL
+    INTEGER I1,I2,K1,K2,lamd_ph_1,lamd_ph_2
+    INTEGER p1,p2
+    DOUBLE PRECISION wigner_val
+    REAL jmin,jmax,jaux(40)
+    lamd_ph_1=0 ! No phonons in the G.S band.
+    IF (p2 .LT. 0) THEN
+      lamd=3.0
+      lamd_ph_2=3
+    ELSE
+      lamd=2.0
+      lamd_ph_2=2
+    ENDIF
+     2 format('&STEP ia=',i2,' ib=',i2,' k=',i1,' str=',1f9.4,'/')
+    IF (J1.GE.lamd) THEN
+      jmin=J1-lamd
+      jmax=J1+lamd
+      DO i=0,INT(2*lamd),1
+        jaux(i+1)=jmin+i
+      ENDDO
+      siz=2*lamd+1
+    ELSE
+      jmin=lamd-J1
+      jmax=lamd+J1
+      DO i=0,2*INT(J1),1
+        jaux(i+1)=jmin+i
+      ENDDO
+      siz=2*J1+1
+    ENDIF
+    DO i=1,INT(siz)
+      IF(jaux(i) .EQ. J2  .AND. J2 .LE. jmax ) THEN
+        CALL wigner(J1,J2,K1,K2,lamd,lamd_ph_1,lamd_ph_2,wigner_val)
+        WRITE(1,2) I1,I2,INT(lamd),((-1)**((J2-J1+ABS(J2-J1))/2))*wigner_val*BETA_VAL ! Phase accoding to FRESCO's convention.
+        CALL wigner(J2,J1,K2,K1,lamd,lamd_ph_2,lamd_ph_1,wigner_val)
+        WRITE(1,2) I2,I1,INT(lamd),((-1)**((J1-J2+ABS(J1-J2))/2))*wigner_val*BETA_VAL
       ENDIF
     ENDDO
-    LAMDA(1:4)=(/2,4,6,3/)
-    np=size(LAMDA)
-    ! G.S -> G.S (test case)-------------------------------------------------------
-    IF (mu==1) THEN
-      DO i=1,neg
-        IE(i)=i
-      END DO
-      DO i=1,neg,1
-        DO k=1,3,1
-          IF (J(i).GE.LAMDA(k)) THEN
-            JMIN=J(i)-LAMDA(k)
-            JMAX=J(i)+ LAMDA(k)
-            DO s=0,2*LAMDA(k)
-              JAUX(s+1)=JMIN+s
-            END DO
-            siz=(2*LAMDA(k))+1
-          ELSE
-            JMIN=LAMDA(k)-J(i)
-            JMAX=J(i)+LAMDA(k)
-            DO s=0,2*J(i)
-              JAUX(s+1)=JMIN+s
-            END DO
-            siz=(2*J(i))+1
-          ENDIF
-          DO l=1,siz,1
-            DO p=1,neg,1
-              IF (JAUX(l).EQ.J(p)  .AND. IE(i).LT.IE(p) .AND. J(p).LE.JMAX) THEN
-                 CALL CLEBSCH(DBLE(J(i)),DBLE(LAMDA(k)),DBLE(J(p)),0d0,0d0,0d0,CG)
-                 WRITE(1,2) IE(i),IE(p),LAMDA(k),CG
-                 WRITE(1,2) IE(p),IE(i),LAMDA(k),CG
-              ENDIF
-            END DO
-          END DO
-        END DO
-      END DO
-    ENDIF
-    ! G.S --> Octupole --------------------------------------------------------
-    IF (mu==2) THEN
-      k=4
-      DO i=1,neo
-        IEO(i)=i+neg
-      END DO
-      DO i=1,neg
-        IE(i)=i
-      END DO
-      DO i=1,neg,1
-        IF (J(i).GE.LAMDA(k)) THEN
-          JMIN=J(i)-LAMDA(k)
-          JMAX=J(i)+ LAMDA(k)
-          DO s=0,2*LAMDA(k)
-            JAUX(s+1)=JMIN+s
-          END DO
-          siz=(2*LAMDA(k))+1
-        ELSE
-          JMIN=LAMDA(k)-J(i)
-          JMAX=J(i)+LAMDA(k)
-          DO s=0,2*JO(i)
-            JAUX(s+1)=JMIN+s
-          END DO
-          siz=(2*JO(i))+1
-        ENDIF
-        DO l=1,siz,1
-          DO p=1,neo,1
-            IF (JAUX(l).EQ.JO(p)  .AND. IE(i).LT.IEO(p) .AND. JO(p).LE.JMAX) THEN
-                 CALL CLEBSCH(DBLE(J(i)),DBLE(LAMDA(k)),DBLE(JO(p)),0d0,0d0,0d0,CG)
-                 WRITE(1,2) IE(i),IEO(p),LAMDA(k),CG*BETA3
-                 WRITE(1,2) IEO(p),IE(i),LAMDA(k),CG*BETA3
-            ENDIF
-          END DO
-        END DO
-      END DO
-    ENDIF
-    ! G.S ---> Beta -----------------------------------------------------------
-    IF (mu==3) THEN
-      k=1
-      DO i=1,neb
-        IEb(i)=i+neo+neg
-      END DO
-      DO i=1,neg
-        IE(i)=i
-      END DO
-      DO i=1,neg,1
-        IF (J(i).GE.LAMDA(k)) THEN
-          JMIN=J(i)-LAMDA(k)
-          JMAX=J(i)+ LAMDA(k)
-          DO s=0,2*LAMDA(k)
-            JAUX(s+1)=JMIN+s
-          END DO
-          siz=(2*LAMDA(k))+1
-        ELSE
-          JMIN=LAMDA(k)-J(i)
-          JMAX=J(i)+LAMDA(k)
-          DO s=0,2*JB(i)
-            JAUX(s+1)=JMIN+s
-          END DO
-          siz=(2*JB(i))+1
-        ENDIF
-        DO l=1,siz,1
-          DO p=1,neb,1
-            IF (JAUX(l).EQ.JB(p)  .AND. IE(i).LT.IEb(p) .AND. JB(p).LE.JMAX) THEN
-              CALL CLEBSCH(DBLE(J(i)),DBLE(LAMDA(k)),DBLE(JB(p)),0d0,0d0,0d0,CG)
-              WRITE(1,2) IE(i),IEb(p),LAMDA(k),CG*BETA2EFF
-              WRITE(1,2) IEb(p),IE(i),LAMDA(k),CG*BETA2EFF
-            ENDIF
-          END DO
-        END DO
-      END DO
-    ENDIF
-    ! G.S ---> GAMMA ----------------------------------------------------------
-    IF (mu==4) THEN
-      k=1
-      DO i=1,nega
-        IEg(i)=i+neo+neg+neb
-      END DO
-      DO i=1,neg
-        IE(i)=i
-      END DO
-      DO i=1,neg,1
-        IF (J(i).GE.LAMDA(k)) THEN
-          JMIN=J(i)-LAMDA(k)
-          JMAX=J(i)+ LAMDA(k)
-          DO s=0,2*LAMDA(k)
-            JAUX(s+1)=JMIN+s
-          END DO
-          siz=(2*LAMDA(k))+1
-        ELSE
-          JMIN=LAMDA(k)-J(i)
-          JMAX=J(i)+LAMDA(k)
-          DO s=0,2*JG(i)
-            JAUX(s+1)=JMIN+s
-          END DO
-          siz=(2*JG(i))+1
-        ENDIF
-        DO l=1,siz,1
-          DO p=1,nega,1
-            IF (JAUX(l).EQ.JG(p)  .AND. IE(i).LT.IEg(p) .AND. JG(p).LE.JMAX) THEN
-              CALL CLEBSCH(DBLE(J(i)),DBLE(LAMDA(k)),DBLE(JG(p)),0d0,0d0,0d0,CG)
-              WRITE(1,2) IE(i),IEg(p),LAMDA(k),CG*GAMMA2EFF
-              WRITE(1,2) IEg(p),IE(i),LAMDA(k),CG*GAMMA2EFF
-            ENDIF
-          END DO
-        END DO
-      END DO
-    ENDIF
-    ! G.S ---> GAMMA NO AXIAL -------------------------------------------------
-    IF (mu==5) THEN
-      k=1
-      DO i=1,neax
-        IEax(i)=i+neo+neg+neb+nega
-      END DO
-      DO i=1,neg
-        IE(i)=i
-      END DO
-      DO i=1,neg,1
-        IF (J(i).GE.LAMDA(k)) THEN
-          JMIN=J(i)-LAMDA(k)
-          JMAX=J(i)+ LAMDA(k)
-          DO s=0,2*LAMDA(k)
-            JAUX(s+1)=JMIN+s
-          END DO
-          siz=(2*LAMDA(k))+1
-        ELSE
-          JMIN=LAMDA(k)-J(i)
-          JMAX=J(i)+LAMDA(k)
-          DO s=0,2*JAX(i)
-            JAUX(s+1)=JMIN+s
-          END DO
-          siz=(2*JAX(i))+1
-        ENDIF
-        DO l=1,siz,1
-          DO p=1,neax,1
-            IF (JAUX(l).EQ.JAX(p)  .AND. IE(i).LT.IEax(p) .AND. JAX(p).LE.JMAX) THEN
-              CALL CLEBSCH(DBLE(JAX(p)),DBLE(LAMDA(k)),DBLE(J(i)),-2d0,2d0,0d0,CG)
-              WRITE(1,2) IE(i),IEax(p),LAMDA(k),sqrt(2.0)*((-1)**(DBLE(JAX(p))))*CG*GAMMANAX
-              WRITE(1,2) IEax(p),IE(i),LAMDA(k),sqrt(2.0)*((-1)**(DBLE(JAX(p))))*CG*GAMMANAX
-            ENDIF
-          END DO
-        END DO
-      END DO
-    ENDIF
     RETURN
   END SUBROUTINE steps
 
