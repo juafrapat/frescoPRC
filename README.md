@@ -1,1 +1,1 @@
-# frescoPRC: Module version without energies in the input file.
+# frescoPRC: Module version with energies in the input file.
