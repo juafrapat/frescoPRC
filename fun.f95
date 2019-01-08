@@ -641,8 +641,8 @@ CONTAINS
   ! - Subroutine used to build  &STEPS part of FRESCO's input.
 
   SUBROUTINE steps(J1,J2,p1,p2,I1,I2,K1,K2,BETA_VAL)
-    REAL J1,J2,lamd,BETA_VAL
-    INTEGER I1,I2,K1,K2,lamd_ph_1,lamd_ph_2
+    REAL J1,J2,K1,K2,lamd,BETA_VAL
+    INTEGER I1,I2,lamd_ph_1,lamd_ph_2
     INTEGER p1,p2
     DOUBLE PRECISION wigner_val
     REAL jmin,jmax,jaux(40)
@@ -672,9 +672,9 @@ CONTAINS
     ENDIF
     DO i=1,INT(siz)
       IF(jaux(i) .EQ. J2  .AND. J2 .LE. jmax ) THEN
-        CALL wigner(J1,J2,K1,K2,lamd,lamd_ph_1,lamd_ph_2,wigner_val)
+        CALL wigner(J1,J2,INT(K1),INT(K2),lamd,lamd_ph_1,lamd_ph_2,wigner_val)
         WRITE(1,2) I1,I2,INT(lamd),((-1)**((J2-J1+ABS(J2-J1))/2))*wigner_val*BETA_VAL ! Phase accoding to FRESCO's convention.
-        CALL wigner(J2,J1,K2,K1,lamd,lamd_ph_2,lamd_ph_1,wigner_val)
+        CALL wigner(J2,J1,INT(K2),INT(K1),lamd,lamd_ph_2,lamd_ph_1,wigner_val)
         WRITE(1,2) I2,I1,INT(lamd),((-1)**((J1-J2+ABS(J1-J2))/2))*wigner_val*BETA_VAL
       ENDIF
     ENDDO

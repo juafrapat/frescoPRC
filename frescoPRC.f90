@@ -13,14 +13,15 @@
   CHARACTER*312 ELEMENTS,out
   CHARACTER tab
   CHARACTER*12 pottype(8)
-  REAL,ALLOCATABLE:: Ener_levels(:), J_val(:),BETA_EFF(:),BETA_PAR(:)
+  REAL,ALLOCATABLE:: Ener_levels(:), J_val(:),BETA_EFF(:),BETA_PAR(:),KBAND(:)
   REAL,POINTER:: po
-  INTEGER,ALLOCATABLE:: BAND(:),KBAND(:),or_val(:), counts(:), indexx(:)
+  INTEGER,ALLOCATABLE:: BAND(:),or_val(:), counts(:), indexx(:)
   INTEGER nexe,num_bands
   INTEGER err,grace_val
   REAL,TARGET,ALLOCATABLE:: jgsval(:), jexc(:)
   INTEGER,ALLOCATABLE:: index_gs(:), index_exc(:)
-  INTEGER,ALLOCATABLE:: gs_Bparity(:), exc_Bparity(:), gs_KBAND(:), exc_KBAND(:)
+  INTEGER,ALLOCATABLE:: gs_Bparity(:), exc_Bparity(:)
+  REAL,ALLOCATABLE:: gs_KBAND(:), exc_KBAND(:)
   tab = char(9)
 
   data pottype / 'REAL_VOLUME', 'REAL_VOLUME', 'IMAG_VOLUME','REAL_SURFACE', &
@@ -48,7 +49,7 @@
   KBAND(nex),or_val(nex),indexx(nex), stat=err)
   CALL error(err,1)
   DO i=1,nex
-    READ(40,'(E12.5,F3.2,I5,I3,F7.5)') Ener_levels(i),J_val(i),KBAND(i),BAND(i),BETA_EFF(i)
+    READ(40,'(E12.5,F5.2,F4.2,I3,F7.5)') Ener_levels(i),J_val(i),KBAND(i),BAND(i),BETA_EFF(i)
     indexx(i)=i
   ENDDO
   !           Effective parameters BETA_EFF(i) without the factor *\beta_{20} like in OPTMAN.
@@ -198,11 +199,11 @@
 		    16	FORMAT('&Partition namep=''n       '' massp=  1.008665 zp=  0 nex=',i3)
 		    WRITE(1,17) NAME,A,Z
 		    17	FORMAT('            namet=''',a8,''' masst=',f10.6,' zt=',f5.1,' qval=  0.000/')
- 		    WRITE(1,'(a)') '&States jp= 0.5 ptyp= 1 ep=  0.000000  cpot=  1 jt= 0.0 ptyt= 1 et= 0.000000 KKt=0/'
+ 		    WRITE(1,'(a)') '&States jp= 0.5 ptyp= 1 ep=  0.000000  cpot=  1 jt= 0.0 ptyt= 1 et= 0.000000 KKt=0.0/'
         DO i=2,nex ! First state (i=1) must be target's ground state.
           WRITE(1,21) 1,J_val(i),BAND(i),Ener_levels(i),KBAND(i)
         ENDDO
-        21	FORMAT('&States copyp= 1                       cpot=',i3,' jt=',f4.1,' ptyt=',i2,' et=',f8.4,' KKt=',i1,'/')
+        21	FORMAT('&States copyp= 1                       cpot=',i3,' jt=',f4.1,' ptyt=',i2,' et=',f8.4,' KKt=',f3.1,'/')
  		    WRITE(1,'(a)') '&Partition /'
 		    WRITE(1,*)
   	    IF(n_exc .EQ. 0) GO TO 780
