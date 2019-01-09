@@ -37,8 +37,8 @@
   WRITE(6,*) 'Please write the name of the input file.'
   READ(*,*) input_file
   OPEN(40,STATUS='old',FILE=input_file)
-  READ(40,*) Z,A,eferm
-  READ(40,*) nex
+  READ(40,'(F5.1,F6.1,F7.4)') Z,A,eferm
+  READ(40,'(I2)') nex
   NAME = symbol(nint(Z))//'000'
   WRITE(6,*) 'Z,A,name =',nint(Z),nint(A),symbol(nint(Z))
   WRITE(NAME(3:5),'(i3.3)') nint(A)
@@ -54,8 +54,8 @@
   ENDDO
   !           Effective parameters BETA_EFF(i) without the factor *\beta_{20} like in OPTMAN.
   Ener_levels=Ener_levels/1000 !Reading in KeV but FRESCO reads it in MeV.
-  READ(40,*) jtmax,hcm0,rmatch,Ngrid
-  READ(40,*) EMIN,EMAX,NE
+  READ(40,'(I3,F6.2,F7.2,I2)') jtmax,hcm0,rmatch,Ngrid
+  READ(40,'(F7.3,F7.3,I4)') EMIN,EMAX,NE
   kpp=1
   IF(NAME(1:1) ==' ') NAME(1:5)=NAME(2:5)//' '
   pname = POTL//'-'//trim(NAME)//'-parameters.txt'
@@ -74,14 +74,14 @@
   rc=1.2894
   ac=0.547
                       !Dispersive parameters
-  READ(40,*) Vlin,Vdep,lambdaHF,Cviso,Vso0,lambdaso,Ccoul
-  READ(40,*) AAv,BBv,W0,BBs,CCs,Cwiso,Wso0,BBso
-  READ(40,*) Ea,alpha,Ades
-  READ(40,*) rHFl,rHFdep,aHFl,aHFdep,rv,avl,avdep
-  READ(40,*) rsl,rsdep,as
-  READ(40,*) rso,aso,rc,ac
-  READ(40,*) BETA2,BETA4,BETA6
-  READ(40,*) grace_val
+  READ(40,'(7F10.5)') Vlin,Vdep,lambdaHF,Cviso,Vso0,lambdaso,Ccoul
+  READ(40,'(6F10.5)') AAv,BBv,W0,BBs,Wso0,BBso
+  READ(40,'(5F10.5)') Ea,alpha,CCs,Cwiso,Ades
+  READ(40,'(7F10.5)') rHFl,rHFdep,aHFl,aHFdep,rv,avl,avdep
+  READ(40,'(3F10.5)') rsl,rsdep,as
+  READ(40,'(4F10.5)') rso,aso,rc,ac
+  READ(40,'(3F10.5)') BETA2,BETA4,BETA6
+  READ(40,'(I1)') grace_val
   !///////////////////////////////////////////////////////////////////////////////////
   num_bands=1
   or_val(1)=BAND(1)
@@ -113,7 +113,7 @@
   CALL error(1,err)
   gv=1; ev=1
   DO i=1,nex
-    IF(BAND(i)==1) THEN ! G.S band MUST be BAND=1 in the input.
+    IF(ABS(BAND(i))==1) THEN ! G.S band MUST be |BAND|=1 in the input.
       po=>jgsval(gv)
       po=J_val(i)
       index_gs(gv)=indexx(i)
