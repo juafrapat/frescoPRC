@@ -199,7 +199,8 @@
 		    16	FORMAT('&Partition namep=''n       '' massp=  1.008665 zp=  0 nex=',i3)
 		    WRITE(1,17) NAME,A,Z
 		    17	FORMAT('            namet=''',a8,''' masst=',f10.6,' zt=',f5.1,' qval=  0.000/')
- 		    WRITE(1,'(a)') '&States jp= 0.5 ptyp= 1 ep=  0.000000  cpot=  1 jt= 0.0 ptyt= 1 et= 0.000000 KKt=0.0/'
+        451 FORMAT('&States jp= 0.5 ptyp= 1 ep=  0.000000  cpot=  1 jt=',f4.1,' ptyt=',i2,' et=',f8.4,' KKt=',f3.1,'/')
+ 		    WRITE(1,451) J_val(1),BAND(1),Ener_levels(1),KBAND(1)
         DO i=2,nex ! First state (i=1) must be target's ground state.
           WRITE(1,21) 1,J_val(i),BAND(i),Ener_levels(i),KBAND(i)
         ENDDO
