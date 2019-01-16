@@ -74,7 +74,7 @@ CONTAINS
     RETURN
   END SUBROUTINE CLEBSCH
 
-  SUBROUTINE wigner(J1_val,J2_val,K1_val,K2_val,lamd_val,l1,l2, &
+  SUBROUTINE wigner_even(J1_val,J2_val,K1_val,K2_val,lamd_val,l1,l2, &
   reduced_matriz_element)
     DOUBLE PRECISION CG(4)
     DOUBLE PRECISION reduced_matriz_element
@@ -111,8 +111,42 @@ CONTAINS
     reduced_matriz_element=f1*f2*(CG(1) + ((-1)**(J2_val+l2))*CG(2) + &
     ((-1)**(J1_val+l1))*CG(3) + ((-1)**(J1_val+J2_val+l1+l2))*CG(4))
     reduced_matriz_element=reduced_matriz_element/factor
-  END SUBROUTINE wigner
+  END SUBROUTINE wigner_even
 
+  SUBROUTINE wigner_odd(J1_val,J2_val,K1_val,K2_val,lamd_val,l1,l2, &
+  reduced_matriz_element)
+
+    DOUBLE PRECISION CG(4)
+    DOUBLE PRECISION reduced_matriz_element
+    REAL J1_val,J2_val,lamd_val
+    REAL K1_val,K2_val
+    REAL TOL
+    INTEGER delta, factor,mu,l1,l2
+    DOUBLE PRECISION f1
+    INTEGER f2,par1,par2
+    TOL=1E-07 !!
+    IF (ABS(K1_val-K2_val) .LT. TOL) THEN
+      mu=0; factor=2
+    ELSE
+      mu=2; factor=1
+    ENDIF
+    par1=l1/ABS(l1)
+    par2=l2/ABS(l2)
+    f1= DSQRT(2*DBLE(J2_val)+1d0)
+    f2= (1+((-1)**(lamd_val))*par1*par2)/2
+    CALL CLEBSCH(DBLE(J2_val),DBLE(lamd_val),DBLE(J1_val),DBLE(K2_val), &
+    DBLE(mu),DBLE(K1_val),CG(1))
+    CALL CLEBSCH(DBLE(J2_val),DBLE(lamd_val),DBLE(J1_val),-1d0*DBLE(K2_val), &
+    DBLE(mu),DBLE(K1_val),CG(2))
+    CALL CLEBSCH(DBLE(J2_val),DBLE(lamd_val),DBLE(J1_val),DBLE(K2_val), &
+    DBLE(mu),-1d0*DBLE(K1_val),CG(3))
+    CALL CLEBSCH(DBLE(J2_val),DBLE(lamd_val),DBLE(J1_val),-1d0*DBLE(K2_val), &
+    DBLE(mu),-1d0*DBLE(K1_val),CG(4))
+    reduced_matriz_element=f1*f2*(CG(1) + ((-1)**(NINT(J2_val-0.5)))*par2*CG(2) &
+    + ((-1)**(NINT(J1_val-0.5)))*par1*CG(3) + &
+    ((-1)**(NINT(J2_val+J1_val-1)))*par2*par1*CG(4))
+    reduced_matriz_element=reduced_matriz_element/factor
+  END SUBROUTINE wigner_odd
   !     *******************************************************
   !     START of dispersive PACK
   !     *******************************************************
@@ -640,7 +674,7 @@ CONTAINS
 
   ! - Subroutine used to build  &STEPS part of FRESCO's input.
 
-  SUBROUTINE steps(J1,J2,p1,p2,I1,I2,K1,K2,BETA_VAL)
+  SUBROUTINE steps_even(J1,J2,p1,p2,I1,I2,K1,K2,BETA_VAL)
     REAL J1,J2,K1,K2,lamd,BETA_VAL
     INTEGER I1,I2,lamd_ph_1,lamd_ph_2
     INTEGER p1,p2
@@ -672,15 +706,53 @@ CONTAINS
     ENDIF
     DO i=1,INT(siz)
       IF(jaux(i) .EQ. J2  .AND. J2 .LE. jmax ) THEN
-        CALL wigner(J1,J2,INT(K1),INT(K2),lamd,lamd_ph_1,lamd_ph_2,wigner_val)
+        CALL wigner_even(J1,J2,INT(K1),INT(K2),lamd,lamd_ph_1,lamd_ph_2,wigner_val)
         WRITE(1,2) I1,I2,INT(lamd),((-1)**((J2-J1+ABS(J2-J1))/2))*wigner_val*BETA_VAL ! Phase accoding to FRESCO's convention.
-        CALL wigner(J2,J1,INT(K2),INT(K1),lamd,lamd_ph_2,lamd_ph_1,wigner_val)
+        CALL wigner_even(J2,J1,INT(K2),INT(K1),lamd,lamd_ph_2,lamd_ph_1,wigner_val)
         WRITE(1,2) I2,I1,INT(lamd),((-1)**((J1-J2+ABS(J1-J2))/2))*wigner_val*BETA_VAL
       ENDIF
     ENDDO
     RETURN
-  END SUBROUTINE steps
+  END SUBROUTINE steps_even
 
+  SUBROUTINE steps_odd(J1,J2,p1,p2,I1,I2,K1,K2,BETA_VAL)
+    REAL J1,J2,K1,K2,lamd,BETA_VAL
+    INTEGER I1,I2
+    INTEGER p1,p2,pval
+    DOUBLE PRECISION wigner_val
+    REAL jmin,jmax,jaux(40)
+    pval=p1*p2
+    IF (pval .LT. 0) THEN
+      lamd=3.0
+    ELSE IF (pval .GT. 0) THEN
+      lamd=2.0
+    ENDIF
+    2 format('&STEP ia=',i2,' ib=',i2,' k=',i1,' str=',1f9.4,'/')
+   IF (J1.GE.lamd) THEN
+     jmin=J1-lamd
+     jmax=J1+lamd
+     DO i=0,INT(2*lamd),1
+       jaux(i+1)=jmin+i
+     ENDDO
+     siz=2*lamd+1
+   ELSE
+     jmin=lamd-J1
+     jmax=lamd+J1
+     DO i=0,NINT(2*J1),1
+       jaux(i+1)=jmin+i
+     ENDDO
+     siz=2*J1+1
+   ENDIF
+   DO i=1,INT(siz)
+     IF(jaux(i) .EQ. J2  .AND. J2 .LE. jmax ) THEN
+       CALL wigner_odd(J1,J2,K1,K2,lamd,p1,p2,wigner_val)
+       WRITE(1,2) I1,I2,INT(lamd),((-1)**(NINT(J2-J1+ABS(J2-J1))/2))*wigner_val*BETA_VAL ! Phase accoding to FRESCO's convention.
+       CALL wigner_odd(J2,J1,K2,K1,lamd,p2,p1,wigner_val)
+       WRITE(1,2) I2,I1,INT(lamd),((-1)**(NINT(J1-J2+ABS(J1-J2))/2))*wigner_val*BETA_VAL
+     ENDIF
+   ENDDO
+   RETURN
+  END SUBROUTINE steps_odd
   ! - Stop in case of allocation error.
   SUBROUTINE error (errval,errtype)
     INTEGER errval,errtype

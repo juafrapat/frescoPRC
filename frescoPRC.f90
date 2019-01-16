@@ -17,11 +17,11 @@
   REAL,POINTER:: po
   INTEGER,ALLOCATABLE:: BAND(:),or_val(:), counts(:), indexx(:)
   INTEGER nexe,num_bands
-  INTEGER err,grace_val
+  INTEGER err,grace_val, num_energy
   REAL,TARGET,ALLOCATABLE:: jgsval(:), jexc(:)
   INTEGER,ALLOCATABLE:: index_gs(:), index_exc(:)
   INTEGER,ALLOCATABLE:: gs_Bparity(:), exc_Bparity(:)
-  REAL,ALLOCATABLE:: gs_KBAND(:), exc_KBAND(:)
+  REAL,ALLOCATABLE:: gs_KBAND(:), exc_KBAND(:), energy_val(:)
   tab = char(9)
 
   data pottype / 'REAL_VOLUME', 'REAL_VOLUME', 'IMAG_VOLUME','REAL_SURFACE', &
@@ -54,8 +54,9 @@
   ENDDO
   !           Effective parameters BETA_EFF(i) without the factor *\beta_{20} like in OPTMAN.
   Ener_levels=Ener_levels/1000 !Reading in KeV but FRESCO reads it in MeV.
-  READ(40,'(I3,F6.2,F7.2,I2)') jtmax,hcm0,rmatch,Ngrid
-  READ(40,'(F7.3,F7.3,I4)') EMIN,EMAX,NE
+  READ(40,'(I3,F6.2,F7.2,I4,I3)') jtmax,hcm0,rmatch,Ngrid,num_energy
+  ALLOCATE(energy_val(num_energy))
+  READ(40,'(5E12.5)') (energy_val(i), i=1, num_energy)
   kpp=1
   IF(NAME(1:1) ==' ') NAME(1:5)=NAME(2:5)//' '
   pname = POTL//'-'//trim(NAME)//'-parameters.txt'
@@ -66,8 +67,6 @@
         & '#Energy    V     rv    av     dV    drv   dav      W     rw    aw     ', &
         &           ' Vd   rvd   avd      Wd   rwd   awd     ', &
         &           'Vso   rvso  avso    dvso    Wso   rwso  awso  rc    ac')
-  DE = 1.
-  IF(NE>1) DE = (EMAX-EMIN)/(NE-1)
   NA = nint(A); NZ = nint(Z)
   ACroot = real(NA)**(1./3.)
   Ccoul=1.36
@@ -82,6 +81,7 @@
   READ(40,'(4F10.5)') rso,aso,rc,ac
   READ(40,'(3F10.5)') BETA2,BETA4,BETA6
   READ(40,'(I1)') grace_val
+  BETA_EFF=BETA_EFF/BETA2 ! input like OPTMAN
   !///////////////////////////////////////////////////////////////////////////////////
   num_bands=1
   or_val(1)=BAND(1)
@@ -139,9 +139,8 @@
     ENDIF
   ENDDO
   !///////////////////////////////////////////////////////////////////////////////////
-  DO IE=1,ABS(NE)
-     IEN=IE-ABS(NE)
-	   E=EMIN+(IE-1)*DE
+  DO k=1,num_energy
+	   E=energy_val(k)
 	   hcm = hcm0
 	   IF(E>50.0) hcm = hcm0/SQRT(E/50.0)
 	   dv=0; drv=0; dav=0; dvso=0.
@@ -159,7 +158,6 @@
 	   RSURF = ACroot * RD
 	   WRITE(10,10) E,VR,RR,AR, dv,drv,dav, W,RW,AW, VD,RVD,AVD, WD,RD,AD,VSO,RSO,ASO, dvso,WSO,WRSO,WASO, RC,AC
 	   10	FORMAT(f7.3, 6(f8.3,2f6.3),2f8.3,2f6.3,2f6.3)
-     IF(IEN<=0) THEN
   	    fname='fresco-00-'//POTL//'-s'//CHAR(ICHAR('0')+nexe)//',o'//CHAR(ICHAR('0')+sum_neg)//'-E0000000.in'
         WRITE(fname(8:9),'(i2)') NINT(Z) ! Z=>10
         WRITE(fname(27:33),'(f7.3)') e
@@ -227,12 +225,21 @@
   	    ELSE
     	     WRITE(1,31) kpp,13,7, 0.0, 1.0, 1.0, 0.0, 0.0, 0.0
   	    ENDIF
-        DO i=1,nexe
-          DO j=1,n_exc
-            CALL steps(jgsval(i),jexc(j),gs_Bparity(i), exc_Bparity(j), &
-            index_gs(i),index_exc(j),gs_KBAND(i),exc_KBAND(j),BETA_PAR(j))
+        IF (MOD(INT(A),2) .EQ. 0) THEN
+          DO i=1,nexe
+            DO j=1,n_exc
+              CALL steps_even(jgsval(i),jexc(j),gs_Bparity(i), exc_Bparity(j), &
+              index_gs(i),index_exc(j),gs_KBAND(i),exc_KBAND(j),BETA_PAR(j))
+            ENDDO
           ENDDO
-        ENDDO
+        ELSE
+          DO i=1,nexe
+            DO j=1,n_exc
+              CALL steps_odd(jgsval(i),jexc(j),gs_Bparity(i), exc_Bparity(j), &
+              index_gs(i),index_exc(j),gs_KBAND(i),exc_KBAND(j),BETA_PAR(j))
+            ENDDO
+          ENDDO
+        ENDIF
   	    WRITE(1,34)
 		    777  continue
 		    IF(ABS(W)+ABS(dv)>1e-10) THEN
@@ -246,12 +253,21 @@
   		       ELSE
                 WRITE(1,31) kpp,13,9, 0.0, 1.0, 1.0, 0.0, 0.0, 0.0
              ENDIF
-             DO i=1,nexe
-               DO j=1,n_exc
-                 CALL steps(jgsval(i),jexc(j),gs_Bparity(i), exc_Bparity(j), &
-                 index_gs(i),index_exc(j),gs_KBAND(i),exc_KBAND(j),BETA_PAR(j))
+             IF (MOD(INT(A),2) .EQ. 0) THEN
+               DO i=1,nexe
+                 DO j=1,n_exc
+                   CALL steps_even(jgsval(i),jexc(j),gs_Bparity(i), exc_Bparity(j), &
+                   index_gs(i),index_exc(j),gs_KBAND(i),exc_KBAND(j),BETA_PAR(j))
+                 ENDDO
                ENDDO
-             ENDDO
+             ELSE
+               DO i=1,nexe
+                 DO j=1,n_exc
+                   CALL steps_odd(jgsval(i),jexc(j),gs_Bparity(i), exc_Bparity(j), &
+                   index_gs(i),index_exc(j),gs_KBAND(i),exc_KBAND(j),BETA_PAR(j))
+                 ENDDO
+               ENDDO
+             ENDIF
     	       WRITE(1,34)
 	       ENDIF
 		     778  CONTINUE
@@ -265,12 +281,21 @@
   	     ELSE
     	     WRITE(1,31) kpp,13,9, 0.0, 1.0, 1.0, 0.0, 0.0, 0.0
   	     ENDIF
-         DO i=1,nexe
-           DO j=1,n_exc
-             CALL steps(jgsval(i),jexc(j),gs_Bparity(i), exc_Bparity(j), &
-             index_gs(i),index_exc(j),gs_KBAND(i),exc_KBAND(j),BETA_PAR(j))
+         IF (MOD(INT(A),2) .EQ. 0) THEN
+           DO i=1,nexe
+             DO j=1,n_exc
+               CALL steps_even(jgsval(i),jexc(j),gs_Bparity(i), exc_Bparity(j), &
+               index_gs(i),index_exc(j),gs_KBAND(i),exc_KBAND(j),BETA_PAR(j))
+             ENDDO
            ENDDO
-         ENDDO
+         ELSE
+           DO i=1,nexe
+             DO j=1,n_exc
+               CALL steps_odd(jgsval(i),jexc(j),gs_Bparity(i), exc_Bparity(j), &
+               index_gs(i),index_exc(j),gs_KBAND(i),exc_KBAND(j),BETA_PAR(j))
+             ENDDO
+           ENDDO
+         ENDIF
   	     WRITE(1,34)
 		     779  CONTINUE
 		     WRITE(1,31) kpp,3,0,VSO,RSO,ASO, WSO,WRSO,WASO
@@ -279,7 +304,6 @@
 		     WRITE(1,*) '&Overlap /'
 		     WRITE(1,*) '&Coupling /'
 		     CLOSE(1)
-     ENDIF
    ENDDO
    IF (grace_val .EQ. 1) THEN
      CALL Graphs
@@ -289,7 +313,7 @@
    counts,indexx,stat=err)
    CALL error(err,2)
    DEALLOCATE(jgsval,index_gs,jexc,index_exc,BETA_PAR, &
-   gs_Bparity,exc_Bparity,gs_KBAND,exc_KBAND,stat=err)
+   gs_Bparity,exc_Bparity,gs_KBAND,exc_KBAND,energy_val,stat=err)
    CALL error(err,2)
    CLOSE(69)
    CLOSE(40)
