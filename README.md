@@ -1,1 +1,1 @@
-# frescoPRC: Module version with energies in the input file and graphs by Python.
+# frescoPRC: Module version with individual energies in the input file, graphs by Python and odd case.
