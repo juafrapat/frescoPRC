@@ -73,13 +73,13 @@
   rc=1.2894
   ac=0.547
                       !Dispersive parameters
-  READ(40,'(7F10.5)') Vlin,Vdep,lambdaHF,Cviso,Vso0,lambdaso,Ccoul
-  READ(40,'(6F10.5)') AAv,BBv,W0,BBs,Wso0,BBso
-  READ(40,'(5F10.5)') Ea,alpha,CCs,Cwiso,Ades
-  READ(40,'(7F10.5)') rHFl,rHFdep,aHFl,aHFdep,rv,avl,avdep
-  READ(40,'(3F10.5)') rsl,rsdep,as
-  READ(40,'(4F10.5)') rso,aso,rc,ac
-  READ(40,'(3F10.5)') BETA2,BETA4,BETA6
+  READ(40,'(7E12.4)') Vlin,Vdep,lambdaHF,Cviso,Vso0,lambdaso,Ccoul
+  READ(40,'(6E12.4)') AAv,BBv,W0,BBs,Wso0,BBso
+  READ(40,'(5E12.4)') Ea,alpha,CCs,Cwiso,Ades
+  READ(40,'(7E12.4)') rHFl,rHFdep,aHFl,aHFdep,rv,avl,avdep
+  READ(40,'(3E12.4)') rsl,rsdep,as
+  READ(40,'(4E12.4)') rso,aso,rc,ac
+  READ(40,'(3E12.4)') BETA2,BETA4,BETA6
   READ(40,'(I1)') grace_val
   BETA_EFF=BETA_EFF/BETA2 ! input like OPTMAN
   !///////////////////////////////////////////////////////////////////////////////////
