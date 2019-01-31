@@ -1,5 +1,5 @@
 !   frescoPRC => Input generator to perform calculations based in the model presented in
-!		PRC 94 6 (2016), 064605 for even-even actinides [effective couplings between
+!		PRC 94 6 (2016), 064605 for even and odd actinides [effective couplings between
 !		bands with dispersive corrections to the optical potential] with FRESCO.
   USE modulo
   PARAMETER (mxsym=100)
@@ -52,7 +52,6 @@
     READ(40,'(E12.5,F5.2,F4.2,I3,F7.5)') Ener_levels(i),J_val(i),KBAND(i),BAND(i),BETA_EFF(i)
     indexx(i)=i
   ENDDO
-  !           Effective parameters BETA_EFF(i) without the factor *\beta_{20} like in OPTMAN.
   Ener_levels=Ener_levels/1000 !Reading in KeV but FRESCO reads it in MeV.
   READ(40,'(I3,F6.2,F7.2,I4,I3)') jtmax,hcm0,rmatch,Ngrid,num_energy
   ALLOCATE(energy_val(num_energy))
@@ -81,10 +80,11 @@
   READ(40,'(4E12.4)') rso,aso,rc,ac
   READ(40,'(3E12.4)') BETA2,BETA4,BETA6
   READ(40,'(I1)') grace_val
-  BETA_EFF=BETA_EFF/BETA2 ! input like OPTMAN
+  BETA_EFF=BETA_EFF/BETA2 ! input like OPTMAN, with x\beta_{20} factor.
+  ! Separation of parameters for G.S band  and excited bands
   !///////////////////////////////////////////////////////////////////////////////////
   num_bands=1
-  or_val(1)=BAND(1)
+  or_val(1)=BAND(1) !Identify wich states are in a same band
   outer: DO i=2,nex
     DO j=1,num_bands
       IF (or_val(j)==BAND(i)) THEN
@@ -92,7 +92,7 @@
       ENDIF
     ENDDO
     num_bands=num_bands+1
-    or_val(num_bands)=BAND(i) ! different BAND values.
+    or_val(num_bands)=BAND(i) ! different NBAND values.
   ENDDO outer
   ALLOCATE(counts(num_bands),stat=err)
   CALL error(err,1)
@@ -113,14 +113,14 @@
   CALL error(1,err)
   gv=1; ev=1
   DO i=1,nex
-    IF(ABS(BAND(i))==1) THEN ! G.S band MUST be |BAND|=1 in the input.
+    IF(ABS(BAND(i))==1) THEN ! G.S band MUST be |NBAND|=1 in the input.
       po=>jgsval(gv)
       po=J_val(i)
       index_gs(gv)=indexx(i)
       gs_Bparity(gv)=BAND(i)
       gs_KBAND(gv)=KBAND(i)
       gv=gv+1
-    ELSE
+    ELSE !Saving all the infomation about excited band's states.
       po=>jexc(ev)
       po=J_val(i)
       index_exc(ev)=indexx(i)
@@ -144,7 +144,7 @@
 	   hcm = hcm0
 	   IF(E>50.0) hcm = hcm0/SQRT(E/50.0)
 	   dv=0; drv=0; dav=0; dvso=0.
-     NTYPE = 1 ! neutron!!
+     NTYPE = 1 ! neutron only!!
      CALL dispers2(A,Z,NTYPE,E,VR,RR,AR, dv,drv,dav, VD,RVD,AVD, &
                      W,RW,AW, WD,RD,AD, VSO,RSO,ASO, dvso, WSO,WRSO,WASO, &
                      Vlin,Vdep,lambdaHF,Cviso,Vso0,lambdaso,Ccoul, &
@@ -164,7 +164,7 @@
         WRITE(fname(27:29),'(i3.3)') INT(e)
         OPEN(1,FORM='formatted',FILE=TRIM(fname))
 		    WRITE(0,*) 'Create file <'//TRIM(fname)//'>'
-        IF (n_exc .NE. 0) THEN
+        IF (n_exc .NE. 0) THEN !If the number of states in excited bands is 0 then .form archives are not necessary -> only G.S band calculation.
     	     potname='fresco-00-'//POTL//'-s'//CHAR(ICHAR('0')+nexe)//',o'//CHAR(ICHAR('0')+sum_neg)//'-E0000000.form'
            WRITE(potname(8:9),'(i2)') NINT(Z) !Z=>10
      	     WRITE(potname(27:33),'(f7.3)') e
@@ -179,7 +179,7 @@
 		    156  FORMAT(' ',a38,' ',a38)
 		    WRITE(1,'(a38)') out
 		    WRITE(1,'(a)') 'NAMELIST'
-        IF(E.LE.1.20) THEN
+        IF(E.LE.1.20) THEN !frxy6j version of FRESCO has some problems using RELA=3d for low energies. After some tests, 1.20 MeV limit seems to work.
     	     WRITE(1,75) hcm,rmatch
         ELSE
     	     WRITE(1,76) hcm,rmatch
@@ -188,10 +188,10 @@
 		    WRITE(1,14) nex
 		    14	FORMAT('    thmin=0.0 thinc=2 thmax=000. iblock=',i3)
 		    75  FORMAT(' &Fresco  hcm= ',f6.3,' rmatch= ',f6.3,' rela=''''')
-		    76  FORMAT(' &Fresco  hcm= ',f6.3,' rmatch= ',f6.3,' rela=''3d''')
-		    !WRITE(1,'(a)') '    chans= 1 smats= 2 xstabl= 1'
+		    76  FORMAT(' &Fresco  hcm= ',f6.3,' rmatch= ',f6.3,' rela=''3d''') !RELA=3d is neccesary to agree with OPTMAN.
+		    !WRITE(1,'(a)') '    chans= 1 smats= 2 xstabl= 1' !extra output information.
 		    WRITE(1,15) E
-		    15	FORMAT('    elab=',f10.3,'  hort=1 /')
+		    15	FORMAT('    elab=',f10.3,'  hort=1 /') ! hort might be neccesary for large number of coupled states.
 		    WRITE(1,*)
  		    WRITE(1,16) nex
 		    16	FORMAT('&Partition namep=''n       '' massp=  1.008665 zp=  0 nex=',i3)
@@ -205,7 +205,7 @@
         21	FORMAT('&States copyp= 1                       cpot=',i3,' jt=',f4.1,' ptyt=',i2,' et=',f8.4,' KKt=',f3.1,'/')
  		    WRITE(1,'(a)') '&Partition /'
 		    WRITE(1,*)
-  	    IF(n_exc .EQ. 0) GO TO 780
+  	    IF(n_exc .EQ. 0) GO TO 780 !if the number of states in excited bands is 0 then .form archives are not generated.
   	    CALL FORMFACT(VR,RR,AR,dv,drv,dav,W,RW,AW,VD,RVD,AVD,WD,RD,AD,Ngrid,rmatch,BETA2,BETA4,BETA6, &
                         real(NA),sum_neg,sum_pos)
 		    780  CONTINUE
@@ -218,14 +218,14 @@
 		    WRITE(1,30) kpp,1,0,VR,RR,AR
 		    WRITE(1,31) kpp,11,13, 0.0, RVOL*BETA2,0.0, RVOL*BETA4, 0.0, RVOL*BETA6
         IF(n_exc .EQ. 0) GO TO 777
-        IF(sum_neg .EQ. 0) THEN
+        IF(sum_neg .EQ. 0) THEN   !&pot type=13 is different in function of the number of positive and negative parity states.
 	         WRITE(1,31) kpp,13,7, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0
   	    ELSE IF(sum_pos .EQ. 0) THEN
     	     WRITE(1,31) kpp,13,7, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0
   	    ELSE
     	     WRITE(1,31) kpp,13,7, 0.0, 1.0, 1.0, 0.0, 0.0, 0.0
   	    ENDIF
-        IF (MOD(INT(A),2) .EQ. 0) THEN
+        IF (MOD(INT(A),2) .EQ. 0) THEN  ! Checking if we are in the case of even or odd target -> different expressions.
           DO i=1,nexe
             DO j=1,n_exc
               CALL steps_even(jgsval(i),jexc(j),gs_Bparity(i), exc_Bparity(j), &
@@ -246,7 +246,7 @@
 			       WRITE(1,31) kpp,1,0,dv,drv,dav,W,RW,AW
 			       WRITE(1,31) kpp,11,13, 0.,BETA2*RVOL2,0.0,BETA4*RVOL2, 0.,BETA6*RVOL2
   		       IF(n_exc .EQ. 0) GO TO 778
-  		       IF(sum_neg .EQ. 0) THEN
+  		       IF(sum_neg .EQ. 0) THEN !&pot type=13 is different in function of the number of positive and negative parity states.
 	              WRITE(1,31) kpp,13,9, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0
   		       ELSE IF(sum_pos .EQ. 0) THEN
      		        WRITE(1,31) kpp,13,9, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0
@@ -274,7 +274,7 @@
 		     WRITE(1,31) kpp,2,0,VD,RVD,AVD,WD,RD,AD
 		     WRITE(1,31) kpp,11,13, 0.0,BETA2*RSURF, 0.0,BETA4*RSURF, 0.0,BETA6*RSURF
          IF(n_exc .EQ. 0) GO TO 779
-  	     IF(sum_neg .EQ. 0) THEN
+  	     IF(sum_neg .EQ. 0) THEN !&pot type=13 is different in function of the number of positive and negative parity states.
 	 		     WRITE(1,31) kpp,13,9, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0
   	     ELSE IF(sum_pos .EQ. 0 ) THEN
            WRITE(1,31) kpp,13,9, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0
@@ -305,7 +305,7 @@
 		     WRITE(1,*) '&Coupling /'
 		     CLOSE(1)
    ENDDO
-   IF (grace_val .EQ. 1) THEN
+   IF (grace_val .EQ. 1) THEN !generating graphs.py in case of graphs generation at the end of the run using runall.sh
      CALL Graphs
      WRITE(6,*) 'graphs.py created: C.S graphs will be generated using Python (matplotlib)'
    ENDIF
