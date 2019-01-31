@@ -1,11 +1,11 @@
 MODULE modulo
   !***********************************************************************************************
-  !* This module contains all functions and subroutines for frescoPRC program:                   *
+  !* This module contains all functions and subroutines for frescoPRC tool:                      *
   !*                                                                                             *
   !* Subroutine CLEBSCH: Compute C-G coefficients                                                *
   !*                                                                                             *
-  !* Subroutine wigner: Compute matrix element of Wigner's functions accoding to B.15 from       *
-  !*                    PRC 94 6 (2016), 064605 (even-even nuclei).                                                 *
+  !* Subroutine wigner: Compute matrix element of Wigner's functions accoding to B.14 and B.19   *
+  !*                    from PRC 94 6 (2016), 064605 (even and odd nuclei).                      *
   !*                                                                                             *
   !* Dispersive functions pack: Calculation of Analytical dispersive integrals.                  *
   !*                                                                                             *
@@ -668,7 +668,7 @@ CONTAINS
   ! ****************************************************************************
   ! *                                                                          *
   ! *      Interband coupling between ground state band and excited bands for  *
-  ! *                               even-even nuclei                           *
+  ! *                               even and odd nuclei                        *
   ! *                                                                          *
   ! ****************************************************************************
 
