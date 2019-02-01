@@ -32,7 +32,7 @@
      & 'NB MO TC RU RH PD AG CD IN SN SB TE  I XE CS BA LA CE PR ND ' // &
      & 'PM SM EU GD TB DY HO ER TM YB LU HF TA  W RE OS IR PT AU HG ' // &
      & 'TL PB BI PO AT RN FR RA AC TH PA  U NP PU AM CM BK CF ES FM'
-  READ (ELEMENTS,1021)(SYMBOL(i), i=1, mxsym)
+  READ(ELEMENTS,1021)(SYMBOL(i), i=1, mxsym)
   1021 FORMAT (300(A2,1X))
   WRITE(6,*) 'Please write the name of the input file.'
   READ(*,*) input_file
@@ -57,7 +57,7 @@
   ALLOCATE(energy_val(num_energy))
   READ(40,'(5E12.5)') (energy_val(i), i=1, num_energy)
   kpp=1
-  IF(NAME(1:1) ==' ') NAME(1:5)=NAME(2:5)//' '
+  IF (NAME(1:1) ==' ') NAME(1:5)=NAME(2:5)//' '
   pname = POTL//'-'//trim(NAME)//'-parameters.txt'
   OPEN(10,form='formatted',file=trim(pname))
   OPEN(69,form='formatted',file='lista.txt' ) !Auxiliar .txt to run FRESCO's inputs for different energies.
@@ -99,7 +99,7 @@
   counts=0
   DO i=1,num_bands
     DO j=1,nex
-      IF(or_val(i)==BAND(j)) THEN
+      IF (or_val(i)==BAND(j)) THEN
         counts(i)=counts(i)+1 !Number of states per band -> counts(1)= G.S
       ENDIF
     ENDDO
@@ -158,152 +158,152 @@
 	   RSURF = ACroot * RD
 	   WRITE(10,10) E,VR,RR,AR, dv,drv,dav, W,RW,AW, VD,RVD,AVD, WD,RD,AD,VSO,RSO,ASO, dvso,WSO,WRSO,WASO, RC,AC
 	   10	FORMAT(f7.3, 6(f8.3,2f6.3),2f8.3,2f6.3,2f6.3)
-  	    fname='fresco-00-'//POTL//'-s'//CHAR(ICHAR('0')+nexe)//',o'//CHAR(ICHAR('0')+sum_neg)//'-E0000000.in'
-        WRITE(fname(8:9),'(i2)') NINT(Z) ! Z=>10
-        WRITE(fname(27:33),'(f7.3)') e
-        WRITE(fname(27:29),'(i3.3)') INT(e)
-        OPEN(1,FORM='formatted',FILE=TRIM(fname))
-		    WRITE(0,*) 'Create file <'//TRIM(fname)//'>'
-        IF (n_exc .NE. 0) THEN !If the number of states in excited bands is 0 then .form archives are not necessary -> only G.S band calculation.
-    	     potname='fresco-00-'//POTL//'-s'//CHAR(ICHAR('0')+nexe)//',o'//CHAR(ICHAR('0')+sum_neg)//'-E0000000.form'
-           WRITE(potname(8:9),'(i2)') NINT(Z) !Z=>10
-     	     WRITE(potname(27:33),'(f7.3)') e
-           WRITE(potname(27:29),'(i3.3)') INT(e)
-     	     WRITE(0,*) 'Create file <'//TRIM(potname)//'>'
-     	     OPEN(94,FORM='formatted',FILE=TRIM(potname))
-     	     WRITE(69,156) TRIM(fname),TRIM(potname)
-        ELSE
-	   	     WRITE(69,156) TRIM(fname)
- 		    ENDIF
-		    out  = 'n+'//TRIM(NAME)//' with '//TRIM(POTL)//''
-		    156  FORMAT(' ',a38,' ',a38)
-		    WRITE(1,'(a38)') out
-		    WRITE(1,'(a)') 'NAMELIST'
-        IF(E.LE.1.20) THEN !frxy6j version of FRESCO has some problems using RELA=3d for low energies. After some tests, 1.20 MeV limit seems to work.
-    	     WRITE(1,75) hcm,rmatch
-        ELSE
-    	     WRITE(1,76) hcm,rmatch
-  	    ENDIF
-		    WRITE(1,'(a,i4,a,f8.6)') '    jtmin=   0.0 jtmax=',jtmax,' absend= ',absend
-		    WRITE(1,14) nex
-		    14	FORMAT('    thmin=0.0 thinc=2 thmax=000. iblock=',i3)
-		    75  FORMAT(' &Fresco  hcm= ',f6.3,' rmatch= ',f6.3,' rela=''''')
-		    76  FORMAT(' &Fresco  hcm= ',f6.3,' rmatch= ',f6.3,' rela=''3d''') !RELA=3d is neccesary to agree with OPTMAN.
-		    !WRITE(1,'(a)') '    chans= 1 smats= 2 xstabl= 1' !extra output information.
-		    WRITE(1,15) E
-		    15	FORMAT('    elab=',f10.3,'  hort=1 /') ! hort might be neccesary for large number of coupled states.
-		    WRITE(1,*)
- 		    WRITE(1,16) nex
-		    16	FORMAT('&Partition namep=''n       '' massp=  1.008665 zp=  0 nex=',i3)
-		    WRITE(1,17) NAME,A,Z
-		    17	FORMAT('            namet=''',a8,''' masst=',f10.6,' zt=',f5.1,' qval=  0.000/')
-        451 FORMAT('&States jp= 0.5 ptyp= 1 ep=  0.000000  cpot=  1 jt=',f4.1,' ptyt=',i2,' et=',f8.4,' KKt=',f3.1,'/')
- 		    WRITE(1,451) J_val(1),BAND(1),Ener_levels(1),KBAND(1)
-        DO i=2,nex ! First state (i=1) must be target's ground state.
-          WRITE(1,21) 1,J_val(i),BAND(i),Ener_levels(i),KBAND(i)
-        ENDDO
-        21	FORMAT('&States copyp= 1                       cpot=',i3,' jt=',f4.1,' ptyt=',i2,' et=',f8.4,' KKt=',f3.1,'/')
- 		    WRITE(1,'(a)') '&Partition /'
-		    WRITE(1,*)
-  	    IF(n_exc .EQ. 0) GO TO 780 !if the number of states in excited bands is 0 then .form archives are not generated.
-  	    CALL FORMFACT(VR,RR,AR,dv,drv,dav,W,RW,AW,VD,RVD,AVD,WD,RD,AD,Ngrid,rmatch,BETA2,BETA4,BETA6, &
+  	 fname='fresco-00-'//POTL//'-s'//CHAR(ICHAR('0')+nexe)//',o'//CHAR(ICHAR('0')+sum_neg)//'-E0000000.in'
+     WRITE(fname(8:9),'(i2)') NINT(Z) ! Z=>10
+     WRITE(fname(27:33),'(f7.3)') e
+     WRITE(fname(27:29),'(i3.3)') INT(e)
+     OPEN(1,FORM='formatted',FILE=TRIM(fname))
+		 WRITE(0,*) 'Create file <'//TRIM(fname)//'>'
+     IF (n_exc .NE. 0) THEN !If the number of states in excited bands is 0 then .form archives are not necessary -> only G.S band calculation.
+       potname='fresco-00-'//POTL//'-s'//CHAR(ICHAR('0')+nexe)//',o'//CHAR(ICHAR('0')+sum_neg)//'-E0000000.form'
+       WRITE(potname(8:9),'(i2)') NINT(Z) !Z=>10
+       WRITE(potname(27:33),'(f7.3)') e
+       WRITE(potname(27:29),'(i3.3)') INT(e)
+       WRITE(0,*) 'Create file <'//TRIM(potname)//'>'
+       OPEN(94,FORM='formatted',FILE=TRIM(potname))
+       WRITE(69,156) TRIM(fname),TRIM(potname)
+     ELSE
+	     WRITE(69,156) TRIM(fname)
+ 		 ENDIF
+		 out  = 'n+'//TRIM(NAME)//' with '//TRIM(POTL)//''
+		 156 FORMAT(' ',a38,' ',a38)
+		 WRITE(1,'(a38)') out
+		 WRITE(1,'(a)') 'NAMELIST'
+     IF (E.LE.1.20) THEN !frxy6j version of FRESCO has some problems using RELA=3d for low energies. After some tests, 1.20 MeV limit seems to work.
+       WRITE(1,75) hcm,rmatch
+     ELSE
+       WRITE(1,76) hcm,rmatch
+  	 ENDIF
+		 WRITE(1,'(a,i4,a,f8.6)') '    jtmin=   0.0 jtmax=',jtmax,' absend= ',absend
+		 WRITE(1,14) nex
+		 14	FORMAT('    thmin=0.0 thinc=2 thmax=000. iblock=',i3)
+	   75 FORMAT(' &Fresco  hcm= ',f6.3,' rmatch= ',f6.3,' rela=''''')
+		 76 FORMAT(' &Fresco  hcm= ',f6.3,' rmatch= ',f6.3,' rela=''3d''') !RELA=3d is neccesary to agree with OPTMAN.
+		 !WRITE(1,'(a)') '    chans= 1 smats= 2 xstabl= 1' !extra output information.
+		 WRITE(1,15) E
+		 15	FORMAT('    elab=',f10.3,'  hort=1 /') ! hort might be neccesary for large number of coupled states.
+		 WRITE(1,*)
+ 		 WRITE(1,16) nex
+		 16	FORMAT('&Partition namep=''n       '' massp=  1.008665 zp=  0 nex=',i3)
+	   WRITE(1,17) NAME,A,Z
+	   17	FORMAT('            namet=''',a8,''' masst=',f10.6,' zt=',f5.1,' qval=  0.000/')
+     451 FORMAT('&States jp= 0.5 ptyp= 1 ep=  0.000000  cpot=  1 jt=',f4.1,' ptyt=',i2,' et=',f8.4,' KKt=',f3.1,'/')
+     WRITE(1,451) J_val(1),BAND(1),Ener_levels(1),KBAND(1)
+     DO i=2,nex ! First state (i=1) must be target's ground state.
+       WRITE(1,21) 1,J_val(i),BAND(i),Ener_levels(i),KBAND(i)
+     ENDDO
+     21	FORMAT('&States copyp= 1                       cpot=',i3,' jt=',f4.1,' ptyt=',i2,' et=',f8.4,' KKt=',f3.1,'/')
+ 		 WRITE(1,'(a)') '&Partition /'
+		 WRITE(1,*)
+  	 IF(n_exc .EQ. 0) GO TO 780 !if the number of states in excited bands is 0 then .form archives are not generated.
+  	 CALL FORMFACT(VR,RR,AR,dv,drv,dav,W,RW,AW,VD,RVD,AVD,WD,RD,AD,Ngrid,rmatch,BETA2,BETA4,BETA6, &
                         real(NA),sum_neg,sum_pos)
-		    780  CONTINUE
-		    WRITE(1,29) kpp,0,0,REAL(NA),0.0,RC,AC
-		    29	FORMAT('&POT kp=',i3,' type =',i2,' shape=',i2,' p(1:4)=',4f9.4,'/')
-		    30	FORMAT('&POT kp=',i3,' type =',i2,' shape=',i2,' p(1:3)=',3f9.4,'/')
-		    31	FORMAT('&POT kp=',i3,' type =',i2,' shape=',i2,' p(1:6)=',6f9.4,'/')
-		    32	FORMAT('&POT /'/)
-		    34  FORMAT('&STEP /')
-		    WRITE(1,30) kpp,1,0,VR,RR,AR
-		    WRITE(1,31) kpp,11,13, 0.0, RVOL*BETA2,0.0, RVOL*BETA4, 0.0, RVOL*BETA6
-        IF(n_exc .EQ. 0) GO TO 777
-        IF(sum_neg .EQ. 0) THEN   !&pot type=13 is different in function of the number of positive and negative parity states.
-	         WRITE(1,31) kpp,13,7, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0
-  	    ELSE IF(sum_pos .EQ. 0) THEN
-    	     WRITE(1,31) kpp,13,7, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0
-  	    ELSE
-    	     WRITE(1,31) kpp,13,7, 0.0, 1.0, 1.0, 0.0, 0.0, 0.0
-  	    ENDIF
-        IF (MOD(INT(A),2) .EQ. 0) THEN  ! Checking if we are in the case of even or odd target -> different expressions.
-          DO i=1,nexe
-            DO j=1,n_exc
-              CALL steps_even(jgsval(i),jexc(j),gs_Bparity(i), exc_Bparity(j), &
-              index_gs(i),index_exc(j),gs_KBAND(i),exc_KBAND(j),BETA_PAR(j))
-            ENDDO
-          ENDDO
-        ELSE
-          DO i=1,nexe
-            DO j=1,n_exc
-              CALL steps_odd(jgsval(i),jexc(j),gs_Bparity(i), exc_Bparity(j), &
-              index_gs(i),index_exc(j),gs_KBAND(i),exc_KBAND(j),BETA_PAR(j))
-            ENDDO
-          ENDDO
-        ENDIF
-  	    WRITE(1,34)
-		    777  continue
-		    IF(ABS(W)+ABS(dv)>1e-10) THEN
-			       WRITE(1,31) kpp,1,0,dv,drv,dav,W,RW,AW
-			       WRITE(1,31) kpp,11,13, 0.,BETA2*RVOL2,0.0,BETA4*RVOL2, 0.,BETA6*RVOL2
-  		       IF(n_exc .EQ. 0) GO TO 778
-  		       IF(sum_neg .EQ. 0) THEN !&pot type=13 is different in function of the number of positive and negative parity states.
-	              WRITE(1,31) kpp,13,9, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0
-  		       ELSE IF(sum_pos .EQ. 0) THEN
-     		        WRITE(1,31) kpp,13,9, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0
-  		       ELSE
-                WRITE(1,31) kpp,13,9, 0.0, 1.0, 1.0, 0.0, 0.0, 0.0
-             ENDIF
-             IF (MOD(INT(A),2) .EQ. 0) THEN
-               DO i=1,nexe
-                 DO j=1,n_exc
-                   CALL steps_even(jgsval(i),jexc(j),gs_Bparity(i), exc_Bparity(j), &
-                   index_gs(i),index_exc(j),gs_KBAND(i),exc_KBAND(j),BETA_PAR(j))
-                 ENDDO
-               ENDDO
-             ELSE
-               DO i=1,nexe
-                 DO j=1,n_exc
-                   CALL steps_odd(jgsval(i),jexc(j),gs_Bparity(i), exc_Bparity(j), &
-                   index_gs(i),index_exc(j),gs_KBAND(i),exc_KBAND(j),BETA_PAR(j))
-                 ENDDO
-               ENDDO
-             ENDIF
-    	       WRITE(1,34)
-	       ENDIF
-		     778  CONTINUE
-		     WRITE(1,31) kpp,2,0,VD,RVD,AVD,WD,RD,AD
-		     WRITE(1,31) kpp,11,13, 0.0,BETA2*RSURF, 0.0,BETA4*RSURF, 0.0,BETA6*RSURF
-         IF(n_exc .EQ. 0) GO TO 779
-  	     IF(sum_neg .EQ. 0) THEN !&pot type=13 is different in function of the number of positive and negative parity states.
-	 		     WRITE(1,31) kpp,13,9, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0
-  	     ELSE IF(sum_pos .EQ. 0 ) THEN
-           WRITE(1,31) kpp,13,9, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0
-  	     ELSE
-    	     WRITE(1,31) kpp,13,9, 0.0, 1.0, 1.0, 0.0, 0.0, 0.0
-  	     ENDIF
-         IF (MOD(INT(A),2) .EQ. 0) THEN
-           DO i=1,nexe
-             DO j=1,n_exc
-               CALL steps_even(jgsval(i),jexc(j),gs_Bparity(i), exc_Bparity(j), &
-               index_gs(i),index_exc(j),gs_KBAND(i),exc_KBAND(j),BETA_PAR(j))
-             ENDDO
+		 780 CONTINUE
+		 WRITE(1,29) kpp,0,0,REAL(NA),0.0,RC,AC
+		 29	FORMAT('&POT kp=',i3,' type =',i2,' shape=',i2,' p(1:4)=',4f9.4,'/')
+		 30 FORMAT('&POT kp=',i3,' type =',i2,' shape=',i2,' p(1:3)=',3f9.4,'/')
+		 31 FORMAT('&POT kp=',i3,' type =',i2,' shape=',i2,' p(1:6)=',6f9.4,'/')
+     32 FORMAT('&POT /'/)
+	   34 FORMAT('&STEP /')
+		 WRITE(1,30) kpp,1,0,VR,RR,AR
+		 WRITE(1,31) kpp,11,13, 0.0, RVOL*BETA2,0.0, RVOL*BETA4, 0.0, RVOL*BETA6
+     IF (n_exc .EQ. 0) GO TO 777
+     IF (sum_neg .EQ. 0) THEN   !&pot type=13 is different in function of the number of positive and negative parity states.
+	     WRITE(1,31) kpp,13,7, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0
+  	 ELSE IF(sum_pos .EQ. 0) THEN
+       WRITE(1,31) kpp,13,7, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0
+  	 ELSE
+    	 WRITE(1,31) kpp,13,7, 0.0, 1.0, 1.0, 0.0, 0.0, 0.0
+  	 ENDIF
+     IF (MOD(INT(A),2) .EQ. 0) THEN  ! Checking if we are in the case of even or odd target -> different expressions.
+       DO i=1,nexe
+         DO j=1,n_exc
+           CALL steps_even(jgsval(i),jexc(j),gs_Bparity(i), exc_Bparity(j), &
+                           index_gs(i),index_exc(j),gs_KBAND(i),exc_KBAND(j),BETA_PAR(j))
+         ENDDO
+       ENDDO
+     ELSE
+       DO i=1,nexe
+         DO j=1,n_exc
+           CALL steps_odd(jgsval(i),jexc(j),gs_Bparity(i), exc_Bparity(j), &
+                          index_gs(i),index_exc(j),gs_KBAND(i),exc_KBAND(j),BETA_PAR(j))
+         ENDDO
+       ENDDO
+     ENDIF
+  	 WRITE(1,34)
+		 777 CONTINUE
+		 IF (ABS(W)+ABS(dv)>1e-10) THEN
+		   WRITE(1,31) kpp,1,0,dv,drv,dav,W,RW,AW
+			 WRITE(1,31) kpp,11,13, 0.,BETA2*RVOL2,0.0,BETA4*RVOL2, 0.,BETA6*RVOL2
+  		 IF (n_exc .EQ. 0) GO TO 778
+  		 IF (sum_neg .EQ. 0) THEN !&pot type=13 is different in function of the number of positive and negative parity states.
+	       WRITE(1,31) kpp,13,9, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0
+  		 ELSE IF(sum_pos .EQ. 0) THEN
+     		 WRITE(1,31) kpp,13,9, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0
+  		 ELSE
+         WRITE(1,31) kpp,13,9, 0.0, 1.0, 1.0, 0.0, 0.0, 0.0
+       ENDIF
+       IF (MOD(INT(A),2) .EQ. 0) THEN
+         DO i=1,nexe
+           DO j=1,n_exc
+             CALL steps_even(jgsval(i),jexc(j),gs_Bparity(i), exc_Bparity(j), &
+                             index_gs(i),index_exc(j),gs_KBAND(i),exc_KBAND(j),BETA_PAR(j))
            ENDDO
-         ELSE
-           DO i=1,nexe
-             DO j=1,n_exc
-               CALL steps_odd(jgsval(i),jexc(j),gs_Bparity(i), exc_Bparity(j), &
-               index_gs(i),index_exc(j),gs_KBAND(i),exc_KBAND(j),BETA_PAR(j))
-             ENDDO
+         ENDDO
+       ELSE
+         DO i=1,nexe
+           DO j=1,n_exc
+             CALL steps_odd(jgsval(i),jexc(j),gs_Bparity(i), exc_Bparity(j), &
+                            index_gs(i),index_exc(j),gs_KBAND(i),exc_KBAND(j),BETA_PAR(j))
            ENDDO
-         ENDIF
-  	     WRITE(1,34)
-		     779  CONTINUE
-		     WRITE(1,31) kpp,3,0,VSO,RSO,ASO, WSO,WRSO,WASO
-		     IF(abs(dvso)>1e-9) WRITE(1,30) kpp,3,0,dvso,WRSO,WASO
-  	     WRITE(1,32)
-		     WRITE(1,*) '&Overlap /'
-		     WRITE(1,*) '&Coupling /'
-		     CLOSE(1)
+         ENDDO
+       ENDIF
+    	 WRITE(1,34)
+     ENDIF
+		 778 CONTINUE
+		 WRITE(1,31) kpp,2,0,VD,RVD,AVD,WD,RD,AD
+		 WRITE(1,31) kpp,11,13, 0.0,BETA2*RSURF, 0.0,BETA4*RSURF, 0.0,BETA6*RSURF
+     IF (n_exc .EQ. 0) GO TO 779
+  	 IF (sum_neg .EQ. 0) THEN !&pot type=13 is different in function of the number of positive and negative parity states.
+	 	   WRITE(1,31) kpp,13,9, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0
+  	 ELSE IF(sum_pos .EQ. 0 ) THEN
+       WRITE(1,31) kpp,13,9, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0
+  	 ELSE
+       WRITE(1,31) kpp,13,9, 0.0, 1.0, 1.0, 0.0, 0.0, 0.0
+  	 ENDIF
+     IF (MOD(INT(A),2) .EQ. 0) THEN
+       DO i=1,nexe
+         DO j=1,n_exc
+           CALL steps_even(jgsval(i),jexc(j),gs_Bparity(i), exc_Bparity(j), &
+                           index_gs(i),index_exc(j),gs_KBAND(i),exc_KBAND(j),BETA_PAR(j))
+         ENDDO
+       ENDDO
+     ELSE
+       DO i=1,nexe
+         DO j=1,n_exc
+           CALL steps_odd(jgsval(i),jexc(j),gs_Bparity(i), exc_Bparity(j), &
+                          index_gs(i),index_exc(j),gs_KBAND(i),exc_KBAND(j),BETA_PAR(j))
+         ENDDO
+       ENDDO
+     ENDIF
+  	 WRITE(1,34)
+		 779 CONTINUE
+		 WRITE(1,31) kpp,3,0,VSO,RSO,ASO, WSO,WRSO,WASO
+		 IF (abs(dvso)>1e-9) WRITE(1,30) kpp,3,0,dvso,WRSO,WASO
+  	 WRITE(1,32)
+		 WRITE(1,*) '&Overlap /'
+		 WRITE(1,*) '&Coupling /'
+		 CLOSE(1)
    ENDDO
    IF (grace_val .EQ. 1) THEN !generating graphs.py in case of graphs generation at the end of the run using runall.sh
      CALL Graphs
