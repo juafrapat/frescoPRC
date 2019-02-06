@@ -11,7 +11,6 @@
   REAL lambdaHF,lambdaso
   INTEGER za,shape,mu,i,sum_neg,sum_pos,gv,ev
   CHARACTER*312 ELEMENTS,out
-  CHARACTER tab
   CHARACTER*12 pottype(8)
   REAL,ALLOCATABLE:: Ener_levels(:), J_val(:),BETA_EFF(:),BETA_PAR(:),KBAND(:)
   REAL,POINTER:: po
@@ -22,7 +21,6 @@
   INTEGER,ALLOCATABLE:: index_gs(:), index_exc(:)
   INTEGER,ALLOCATABLE:: gs_Bparity(:), exc_Bparity(:)
   REAL,ALLOCATABLE:: gs_KBAND(:), exc_KBAND(:), energy_val(:)
-  tab = char(9)
 
   data pottype / 'REAL_VOLUME', 'REAL_VOLUME', 'IMAG_VOLUME','REAL_SURFACE', &
      &  		'IMAG_SURFACE', 'REAL_SPINORB', 'IMAG_SPINORB', 'REAL_SPINORB' /
@@ -34,18 +32,24 @@
      & 'TL PB BI PO AT RN FR RA AC TH PA  U NP PU AM CM BK CF ES FM'
   READ(ELEMENTS,1021)(SYMBOL(i), i=1, mxsym)
   1021 FORMAT (300(A2,1X))
-  WRITE(6,*) 'Please write the name of the input file.'
+  450 CONTINUE
+  WRITE(6,*) 'Write the name of the input file:'
   READ(*,*) input_file
-  OPEN(40,STATUS='old',FILE=input_file)
+  OPEN(40,STATUS='old',FILE=input_file,IOSTAT=err)
+  IF(err .NE. 0) THEN
+    WRITE(6,*) 'Error reading the name of the input file.'
+    WRITE(6,*) 'Please, check the name of the file [it must include the extension].'
+    GO TO 450
+  ENDIF
   READ(40,'(F5.1,F6.1,F7.4)') Z,A,eferm
   READ(40,'(I2)') nex
-  NAME = symbol(nint(Z))//'000'
-  WRITE(6,*) 'Z,A,name =',nint(Z),nint(A),symbol(nint(Z))
-  WRITE(NAME(3:5),'(i3.3)') nint(A)
+  NAME = symbol(NINT(Z))//'000'
+  WRITE(6,*) 'Z,A,name =',NINT(Z),NINT(A),symbol(NINT(Z))
+  WRITE(NAME(3:5),'(i3.3)') NINT(A)
   absend = 0.001
   POTL = 'DOMEIC16'
   ALLOCATE(Ener_levels(nex),J_val(nex),BAND(nex),BETA_EFF(nex), &
-  KBAND(nex),or_val(nex),indexx(nex), stat=err)
+  KBAND(nex),or_val(nex),indexx(nex), STAT=err)
   CALL error(err,1)
   DO i=1,nex
     READ(40,'(E12.5,F5.2,F4.2,I3,F7.5)') Ener_levels(i),J_val(i),KBAND(i),BAND(i),BETA_EFF(i)
@@ -57,15 +61,15 @@
   READ(40,'(5E12.5)') (energy_val(i), i=1, num_energy)
   kpp = 1
   IF(NAME(1:1) ==' ') NAME(1:5)=NAME(2:5)//' '
-  pname = POTL//'-'//trim(NAME)//'-parameters.txt'
-  OPEN(10,form='formatted',file=trim(pname))
-  OPEN(69,form='formatted',file='lista.txt' ) !Auxiliar .txt to run FRESCO's inputs for different energies.
+  pname = POTL//'-'//TRIM(NAME)//'-parameters.txt'
+  OPEN(10,FORM='formatted',FILE=TRIM(pname))
+  OPEN(69,FORM='formatted',FILE='lista.txt' ) !Auxiliar .txt to run FRESCO's inputs for different energies.
   WRITE(10,1) POTL,NAME
   1	FORMAT('####### OPTICAL PARAMETERS for ',A8,' ########'/'#'/'#     neutron on ',a5,/'#'/ &
         & '#Energy    V     rv    av     dV    drv   dav      W     rw    aw     ', &
         &           ' Vd   rvd   avd      Wd   rwd   awd     ', &
         &           'Vso   rvso  avso    dvso    Wso   rwso  awso  rc    ac')
-  NA = nint(A); NZ = nint(Z)
+  NA = NINT(A); NZ = NINT(Z)
   ACroot = real(NA)**(1./3.)
   Ccoul = 1.36
   rc = 1.2894
@@ -93,7 +97,7 @@
     num_bands = num_bands+1
     or_val(num_bands) = BAND(i) ! different NBAND values.
   ENDDO outer
-  ALLOCATE(counts(num_bands),stat=err)
+  ALLOCATE(counts(num_bands),STAT=err)
   CALL error(err,1)
   counts = 0
   DO i=1,num_bands
@@ -105,10 +109,10 @@
   ENDDO
   nexe = counts(1); n_exc = nex-nexe
   ALLOCATE(jgsval(nexe),index_gs(nexe),gs_Bparity(nexe), &
-  gs_KBAND(nexe),stat=err)
+  gs_KBAND(nexe),STAT=err)
   CALL error(1,err)
   ALLOCATE(jexc(n_exc),index_exc(n_exc),exc_Bparity(n_exc), &
-  exc_KBAND(n_exc),BETA_PAR(n_exc),stat=err)
+  exc_KBAND(n_exc),BETA_PAR(n_exc),STAT=err)
   CALL error(1,err)
   gv = 1; ev = 1 !indices
   DO i=1,nex
@@ -178,11 +182,13 @@
      156 FORMAT(' ',a38,' ',a38)
      WRITE(1,'(a38)') out
      WRITE(1,'(a)') 'NAMELIST'
-     IF(E.LE.1.20) THEN !frxy6j version of FRESCO has some problems using RELA=3d for low energies. After some tests, 1.20 MeV limit seems to work.
+!    frxy6j version of FRESCO has some problems using RELA=3d for low energies. After some tests, 1.20 MeV limit seems to work.
+     IF(E.LE.1.20) THEN
        WRITE(1,75) hcm,rmatch
      ELSE
        WRITE(1,76) hcm,rmatch
      ENDIF
+!!!!!!!!!
      WRITE(1,'(a,i4,a,f8.6)') '    jtmin=   0.0 jtmax=',jtmax,' absend= ',absend
      WRITE(1,14) nex
      14	FORMAT('    thmin=0.0 thinc=2 thmax=000. iblock=',i3)
@@ -206,7 +212,7 @@
      WRITE(1,*)
      IF(n_exc .EQ. 0) GO TO 780 !if the number of states in excited bands is 0 then .form archives are not generated.
      CALL FORMFACT(VR,RR,AR,dv,drv,dav,W,RW,AW,VD,RVD,AVD,WD,RD,AD,Ngrid,rmatch,BETA2,BETA4,BETA6, &
-                  real(NA),sum_neg,sum_pos)
+                  REAL(NA),sum_neg,sum_pos)
      780 CONTINUE
      WRITE(1,29) kpp,0,0,REAL(NA),0.0,RC,AC
      29	FORMAT('&POT kp=',i3,' type =',i2,' shape=',i2,' p(1:4)=',4f9.4,'/')
@@ -298,7 +304,7 @@
      WRITE(1,34)
      779 CONTINUE
      WRITE(1,31) kpp,3,0,VSO,RSO,ASO, WSO,WRSO,WASO
-     IF(abs(dvso)>1e-9) WRITE(1,30) kpp,3,0,dvso,WRSO,WASO
+     IF(ABS(dvso)>1e-9) WRITE(1,30) kpp,3,0,dvso,WRSO,WASO
      WRITE(1,32)
      WRITE(1,*) '&Overlap /'
      WRITE(1,*) '&Coupling /'
@@ -309,10 +315,10 @@
      WRITE(6,*) 'graphs.py created: C.S graphs will be generated using Python (matplotlib)'
    ENDIF
    DEALLOCATE(Ener_levels,J_val,BAND,BETA_EFF,KBAND,or_val, &
-   counts,indexx,stat=err)
+   counts,indexx,STAT=err)
    CALL error(err,2)
    DEALLOCATE(jgsval,index_gs,jexc,index_exc,BETA_PAR, &
-   gs_Bparity,exc_Bparity,gs_KBAND,exc_KBAND,energy_val,stat=err)
+   gs_Bparity,exc_Bparity,gs_KBAND,exc_KBAND,energy_val,STAT=err)
    CALL error(err,2)
    CLOSE(69)
    CLOSE(40)
