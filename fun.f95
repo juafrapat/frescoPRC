@@ -14,8 +14,8 @@ MODULE modulo
   !*                      FRESCO's input [fort.4].                                               *
   !*                                                                                             *
   !* Subroutine steps: Build the couplings between G.S band and excited bands for                *
-  !*                   even-even nuclei according to equation B.12 from PRC 94 6 (2016), 064605. *
-  !*                                                                                             *
+  !*                   even and odd nuclei according to equations B.12 and B.16 from             *
+  !*                   PRC 94 6 (2016), 064605.                                                  *                    *
   !***********************************************************************************************
 CONTAINS
 
