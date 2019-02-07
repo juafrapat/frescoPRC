@@ -41,7 +41,7 @@
     WRITE(6,*) 'Please, check the name of the file [it must include the extension].'
     GO TO 450
   ENDIF
-  READ(40,'(F5.1,F6.1,F7.4)') Z,A,eferm
+  READ(40,'(F5.1,F10.5,F7.4)') Z,A,eferm
   READ(40,'(I2)') nex
   NAME = symbol(NINT(Z))//'000'
   WRITE(6,*) 'Z,A,name =',NINT(Z),NINT(A),symbol(NINT(Z))
