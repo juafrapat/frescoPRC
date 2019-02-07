@@ -167,7 +167,7 @@
      WRITE(fname(27:29),'(i3.3)') INT(e)
      OPEN(1,FORM='formatted',FILE=TRIM(fname))
      WRITE(0,*) 'Create file <'//TRIM(fname)//'>'
-     IF(n_exc .NE. 0) THEN !If the number of states in excited bands is 0 then .form archives are not necessary -> only G.S band calculation.
+     IF(n_exc .NE. 0) THEN !If the number of states in excited bands is 0 then .form files are not necessary -> only G.S band calculation.
        potname='fresco-00-'//POTL//'-s'//CHAR(ICHAR('0')+nexe)//',o'//CHAR(ICHAR('0')+sum_neg)//'-E0000000.form'
        WRITE(potname(8:9),'(i2)') NINT(Z) !Z=>10
        WRITE(potname(27:33),'(f7.3)') e
@@ -210,7 +210,7 @@
      21	FORMAT('&States copyp= 1                       cpot=',i3,' jt=',f4.1,' ptyt=',i2,' et=',f8.4,' KKt=',f3.1,'/')
      WRITE(1,'(a)') '&Partition /'
      WRITE(1,*)
-     IF(n_exc .EQ. 0) GO TO 780 !if the number of states in excited bands is 0 then .form archives are not generated.
+     IF(n_exc .EQ. 0) GO TO 780 !if the number of states in excited bands is 0 then .form files are not generated.
      CALL FORMFACT(VR,RR,AR,dv,drv,dav,W,RW,AW,VD,RVD,AVD,WD,RD,AD,Ngrid,rmatch,BETA2,BETA4,BETA6, &
                   REAL(NA),sum_neg,sum_pos)
      780 CONTINUE
