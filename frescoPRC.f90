@@ -167,7 +167,7 @@
      WRITE(fname(27:29),'(i3.3)') INT(e)
      OPEN(1,FORM='formatted',FILE=TRIM(fname))
      WRITE(0,*) 'Create file <'//TRIM(fname)//'>'
-     IF(n_exc .NE. 0) THEN !If the number of states in excited bands is 0 then .form files are not necessary -> only G.S band calculation.
+     IF(n_exc .NE. 0) THEN !If the number of states in excited bands is 0 then .form files are not necessary.
        potname='fresco-00-'//POTL//'-s'//CHAR(ICHAR('0')+nexe)//',o'//CHAR(ICHAR('0')+sum_neg)//'-E0000000.form'
        WRITE(potname(8:9),'(i2)') NINT(Z) !Z=>10
        WRITE(potname(27:33),'(f7.3)') e
