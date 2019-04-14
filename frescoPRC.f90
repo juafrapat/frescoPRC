@@ -64,7 +64,7 @@
   ENDIF
 
   !Reading input
-
+  !Old input style commented
   !READ(40,'(F5.1,F10.5,F7.4)') Z,A,eferm
   !READ(40,'(I2)') nstat
   READ (40, NML=target, END=761, IOSTAT=ios, ERR=761 )
@@ -82,7 +82,6 @@
             WRITE(*,*) 'Input read error while reading States: ', iosss
             STOP
         ENDIF
-    !WRITE(*,state)
     Ener_levels(i)=Et; J_val(i)=Jval; KBAND(i)=Kval; 
     BAND(i)=NBAND; BETA_EFF(i)=COEFF
     indexx(i) = i
@@ -111,7 +110,6 @@
         WRITE(*,*) 'Input read error while reading potential: ', iosss
         STOP
       ENDIF
-  !WRITE(*,potential)
   !READ(40,'(7E12.4)') v0a,v0b,lambdhf,cviso,vspo,lambdso,ccoul
   !READ(40,'(6E12.4)') av,bv,w0,bs,Wso0,BBso
   !READ(40,'(5E12.4)') Ea,alpha,CCs,Cwiso,Ades
@@ -258,14 +256,14 @@
      76 FORMAT(' &Fresco  hcm= ',f6.3,' rmatch= ',f6.3,' rela=''3d''') !RELA=3d(frxy6j) or RELA=c (v32) is neccesary to agree with OPTMAN.
      !WRITE(1,'(a)') '    chans= 1 smats= 2 xstabl= 1' !extra output information.
      WRITE(1,15) E
-     15	FORMAT('    elab=',f10.3,' /') ! hort might be neccesary for large number of coupled states -> only in frxy6j for now.
+     15	FORMAT('    elab=',f10.3,' /')
      WRITE(1,*)
      WRITE(1,16) nstat
      16	FORMAT('&Partition namep=''n       '' massp=  1.008665 zp=  0 nex=',i3)
      WRITE(1,17) NAME,A,Z
      17	FORMAT('            namet=''',a8,''' masst=',f10.5,' zt=',f5.1,' qval=  0.000/')
      451 FORMAT('&States jp= 0.5 ptyp= 1 ep=  0.000000  cpot=  1 jt=',f4.1,' ptyt=',i2,' et=',f8.4,' KKt=',f3.1,'/')
-     WRITE(1,451) J_val(1),BAND(1),Ener_levels(1),KBAND(1)
+     WRITE(1,451) J_val(1),BAND(1),Ener_levels(1),KBAND(1) !G.S
      DO i=2,nstat ! First state (i=1) must be target's ground state.
        WRITE(1,21) 1,J_val(i),BAND(i),Ener_levels(i),KBAND(i)
      ENDDO
