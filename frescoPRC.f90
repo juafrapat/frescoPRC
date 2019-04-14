@@ -98,7 +98,7 @@
   !READ(40,'(5E12.5)') (elab(i), i=1, Nenergy)
   READ (40, NML=energies, END=764, IOSTAT=iosss, ERR=764 )
 764  IF (iosss .ne. 0) then
-        WRITE(*,*) 'Input read error while reading Energies: ', iosss
+        WRITE(*,*) 'Input read error while reading Energies (Check if &Energies is after &Fresco): ', iosss
         STOP
      ENDIF
   ccoul = 1.36 ! Default
