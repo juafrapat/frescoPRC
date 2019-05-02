@@ -98,7 +98,7 @@
   !READ(40,'(5E12.5)') (elab(i), i=1, Nenergy)
   READ (40, NML=energies, END=764, IOSTAT=iosss, ERR=764 )
 764  IF (iosss .ne. 0) then
-        WRITE(*,*) 'Input read error while reading Energies (Check if &Energies is after &Fresco): ', iosss
+        WRITE(*,*) 'Input read error while reading Energies: ', iosss
         STOP
      ENDIF
   ccoul = 1.36 ! Default
@@ -242,9 +242,9 @@
      WRITE(1,'(a)') 'NAMELIST'
 !    frxy6j version of FRESCO has some problems using RELA=3d for low energies. After some tests, 1.20 MeV limit seems to work.
 !    Feb/2019 -> Antonio fixed the problem with low energies when rela=3d for frxy6j and included it in FRESCO v3.
-!    New version of FRESCO "v3.2" can be used with rela=c for any energy but "hort" still not available for this version.
-     IF(E.LE.1.20) THEN
-       WRITE(1,75) hcmv,rmatch ! 76 --> 75 if using not fixed frxy6j.
+!    New version of FRESCO "v3.2" can be used with rela=c. Problems for low energies (same as for frxy6j).
+     IF(E.LE.1.20) THEN ! 
+       WRITE(1,75) hcmv,rmatch !!
      ELSE
        WRITE(1,76) hcmv,rmatch
      ENDIF
@@ -253,7 +253,7 @@
      WRITE(1,14) nstat
      14	FORMAT('    thmin=0.0 thinc=2 thmax=000. iblock=',i3)
      75 FORMAT(' &Fresco  hcm= ',f6.3,' rmatch= ',f6.3,' rela=''''')
-     76 FORMAT(' &Fresco  hcm= ',f6.3,' rmatch= ',f6.3,' rela=''3d''') !RELA=3d(frxy6j) or RELA=c (v32) is neccesary to agree with OPTMAN.
+     76 FORMAT(' &Fresco  hcm= ',f6.3,' rmatch= ',f6.3,' rela=''c''') !RELA=3d(frxy6j) or RELA=c (v32) is neccesary to agree with OPTMAN.
      !WRITE(1,'(a)') '    chans= 1 smats= 2 xstabl= 1' !extra output information.
      WRITE(1,15) E
      15	FORMAT('    elab=',f10.3,' /')
@@ -283,13 +283,23 @@
      WRITE(1,30) kpp,1,0,VR,RR,AR
      WRITE(1,31) kpp,11,13, 0.0, RVOL*BETA20,0.0, RVOL*BETA40, 0.0, RVOL*BETA60
      IF(n_exc .EQ. 0) GO TO 777
-     IF(sum_neg .EQ. 0) THEN   !&pot type=13 is different in function of the number of positive and negative parity states.
-       WRITE(1,31) kpp,13,7, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0
-     ELSE IF(sum_pos .EQ. 0) THEN
-       WRITE(1,31) kpp,13,7, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0
-     ELSE
-       WRITE(1,31) kpp,13,7, 0.0, 1.0, 1.0, 0.0, 0.0, 0.0
-     ENDIF
+     IF(gs_Bparity(1) .GT. 0 ) THEN !Case G.S parity +1
+      IF(sum_neg .EQ. 0) THEN   !&pot type=13 is different in function of the number of positive and negative parity states.
+        WRITE(1,31) kpp,13,7, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0
+      ELSE IF(sum_pos .EQ. 0) THEN
+        WRITE(1,31) kpp,13,7, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0
+      ELSE
+        WRITE(1,31) kpp,13,7, 0.0, 1.0, 1.0, 0.0, 0.0, 0.0
+      ENDIF
+    ELSE IF (gs_Bparity(1) .LT. 0 ) THEN !Case G.S parity -1 (e.g 235U)
+      IF(sum_neg .EQ. 0) THEN  
+        WRITE(1,31) kpp,13,7, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0
+      ELSE IF(sum_pos .EQ. 0) THEN
+        WRITE(1,31) kpp,13,7, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0
+      ELSE
+        WRITE(1,31) kpp,13,7, 0.0, 1.0, 1.0, 0.0, 0.0, 0.0
+      ENDIF
+    ENDIF
      IF(MOD(INT(A),2) .EQ. 0) THEN  ! Checking if we are in the case of even or odd target -> different expressions.
        DO i=1,nexe
          DO j=1,n_exc
@@ -311,12 +321,22 @@
        WRITE(1,31) kpp,1,0,dv,drv,dav,W,RW,AW
        WRITE(1,31) kpp,11,13, 0.,BETA20*RVOL2,0.0,BETA40*RVOL2, 0.,BETA60*RVOL2
        IF(n_exc .EQ. 0) GO TO 778
-       IF(sum_neg .EQ. 0) THEN !&pot type=13 is different in function of the number of positive and negative parity states.
-         WRITE(1,31) kpp,13,9, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0
-       ELSE IF(sum_pos .EQ. 0) THEN
-         WRITE(1,31) kpp,13,9, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0
-       ELSE
-         WRITE(1,31) kpp,13,9, 0.0, 1.0, 1.0, 0.0, 0.0, 0.0
+       IF(gs_Bparity(1) .GT. 0 ) THEN !Case G.S parity +1
+        IF(sum_neg .EQ. 0) THEN  
+          WRITE(1,31) kpp,13,9, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0
+        ELSE IF(sum_pos .EQ. 0) THEN
+          WRITE(1,31) kpp,13,9, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0
+        ELSE
+          WRITE(1,31) kpp,13,9, 0.0, 1.0, 1.0, 0.0, 0.0, 0.0
+        ENDIF
+       ELSE IF (gs_Bparity(1) .LT. 0 ) THEN !Case G.S parity -1 (e.g 235U)
+        IF(sum_neg .EQ. 0) THEN  
+          WRITE(1,31) kpp,13,9, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0
+        ELSE IF(sum_pos .EQ. 0) THEN
+          WRITE(1,31) kpp,13,9, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0
+        ELSE
+          WRITE(1,31) kpp,13,9, 0.0, 1.0, 1.0, 0.0, 0.0, 0.0
+        ENDIF
        ENDIF
        IF(MOD(INT(A),2) .EQ. 0) THEN
          DO i=1,nexe
@@ -339,12 +359,22 @@
      WRITE(1,31) kpp,2,0,VD,RVD,AVD,WD,RD,AD
      WRITE(1,31) kpp,11,13, 0.0,BETA20*RSURF, 0.0,BETA40*RSURF, 0.0,BETA60*RSURF
      IF(n_exc .EQ. 0) GO TO 779
-     IF(sum_neg .EQ. 0) THEN !&pot type = 13 is different in function of the number of positive and negative parity states.
-       WRITE(1,31) kpp,13,9, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0
-     ELSE IF(sum_pos .EQ. 0 ) THEN
-       WRITE(1,31) kpp,13,9, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0
-     ELSE
-       WRITE(1,31) kpp,13,9, 0.0, 1.0, 1.0, 0.0, 0.0, 0.0
+     IF(gs_Bparity(1) .GT. 0 ) THEN !Case G.S parity +1
+      IF(sum_neg .EQ. 0) THEN  
+        WRITE(1,31) kpp,13,9, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0
+      ELSE IF(sum_pos .EQ. 0) THEN
+        WRITE(1,31) kpp,13,9, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0
+      ELSE
+        WRITE(1,31) kpp,13,9, 0.0, 1.0, 1.0, 0.0, 0.0, 0.0
+      ENDIF
+     ELSE IF (gs_Bparity(1) .LT. 0 ) THEN !Case G.S parity -1 (e.g 235U)
+      IF(sum_neg .EQ. 0) THEN  
+        WRITE(1,31) kpp,13,9, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0
+      ELSE IF(sum_pos .EQ. 0) THEN
+        WRITE(1,31) kpp,13,9, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0
+      ELSE
+        WRITE(1,31) kpp,13,9, 0.0, 1.0, 1.0, 0.0, 0.0, 0.0
+      ENDIF
      ENDIF
      IF(MOD(INT(A),2) .EQ. 0) THEN
        DO i=1,nexe

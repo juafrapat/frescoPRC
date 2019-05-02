@@ -1,0 +1,41 @@
+&Target Z=92.0 A=238.0 eferm=-5.4803 
+  BETA20=0.231  BETA40=0.062 BETA60=-9.6000E-03
+  nstat=18 /
+
+&State Et=0.0000E+00 Jval=0.0 Kval=0.0 NBAND=1 COEFF=0.2310 /
+&State Et=4.4900E+01 Jval=2.0 Kval=0.0 NBAND=1 COEFF=0.2310 /
+&State Et=1.4840E+02 Jval=4.0 Kval=0.0 NBAND=1 COEFF=0.2310 /
+&State Et=3.0740E+02 Jval=6.0 Kval=0.0 NBAND=1 COEFF=0.2310 /
+&State Et=5.1740E+02 Jval=8.0 Kval=0.0 NBAND=1 COEFF=0.2310 /
+&State Et=7.7590E+02 Jval=10.0 Kval=0.0 NBAND=1 COEFF=0.231 /
+
+&State Et=6.7980E+02 Jval=1.0 Kval=0.0 NBAND=-2 COEFF=0.062 /
+&State Et=7.3130E+02 Jval=3.0 Kval=0.0 NBAND=-2 COEFF=0.062 /
+&State Et=8.2670E+02 Jval=5.0 Kval=0.0 NBAND=-2 COEFF=0.062 /
+&State Et=9.6640E+02 Jval=7.0 Kval=0.0 NBAND=-2 COEFF=0.062 /
+&State Et=1.1507E+03 Jval=9.0 Kval=0.0 NBAND=-2 COEFF=0.062 /
+
+&State Et=9.9300E+02 Jval=0.0 Kval=0.0 NBAND=3 COEFF=0.0240 /
+&State Et=1.0373E+03 Jval=2.0 Kval=0.0 NBAND=3 COEFF=0.0240 /
+
+&State Et=9.2700E+02 Jval=0.0 Kval=0.0 NBAND=4 COEFF=0.0110 /
+&State Et=9.6630E+02 Jval=2.0 Kval=0.0 NBAND=4 COEFF=0.0110 /
+&State Et=1.0564E+03 Jval=4.0 Kval=0.0 NBAND=4 COEFF=0.0110 /
+
+&State Et=1.0603E+03 Jval=2.0 Kval=2.0 NBAND=5 COEFF=0.0700 /
+&State Et=1.1057E+03 Jval=3.0 Kval=2.0 NBAND=5 COEFF=0.0700 /
+
+&Fresco hcm=0.10 rmatch= 20.00 Jmax=45
+  Ngrid=41 pythonFlag=0 Nenergy=5 /
+
+&Energies 
+  elab=0.001,0.200,1.0000,2.0000,10.0000 /
+
+&Potential   v0a=50.41 v0b=0.0292  lambdhf= 0.00977
+  cviso=17.50 vspo=5.64 lambdso=0.005 ccoul=1.36
+     av=11.91  bv=81.86 w0=17.70  bs=10.85 wspo=-3.1
+  bso=160.0 ea=55.0 alphav=0.355 cs=0.01331 cwiso=29.0
+  adv=238.0 rhfa=1.2490 rhfb=-0.00171 ahfa=0.638 ahfb=0.00219
+  rv=1.2657 ava=0.6960 avb=-0.00021 rsa=1.1701 rsb=0.0041
+  as=0.617 rso=1.1214 aso=0.59 rc=1.1289 ac=0.547 /
+/
