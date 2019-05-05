@@ -21,15 +21,18 @@
 &State Et=3.5380E+02 Jval=4.5 Kval=2.5 NBAND=-3 COEFF=0.065 /
 &State Et=3.9760E+02 Jval=5.5 Kval=2.5 NBAND=-3 COEFF=0.065 /
 
-&Fresco hcm=0.10 rmatch= 20.00 Jmax=45
-  Ngrid=41 pythonFlag=0 Nenergy=5 /
+&Fresco hcm=0.10 rmatch= 20.00 Jmax=20
+  Ngrid=41 pythonFlag=0 Nenergy=37 /
 
 &Energies 
-  elab=0.001,0.200,1.0000,2.0000,10.0000 /
+  elab=0.001,0.002,0.004,0.006,0.008,0.01,0.02,0.04,
+  0.06,0.08,0.100,0.200,0.400,0.600,0.800,1.0000,1.30,1.40,1.50,2.0000,
+  2.20,2.70,3.20,3.70,4.2,4.8,5.00,
+  7.00,10.0000,12.00,15.00,17.00,20.00,23.00,26.00,28.00,30.00 /
 
-&Potential   v0a=50.41 v0b=0.0292  lambdhf= 0.00977
-  cviso=17.50 vspo=5.64 lambdso=0.005 ccoul=1.36
-     av=11.91  bv=81.86 w0=17.70  bs=10.85 wspo=-3.1
+&Potential v0a=50.41 v0b=0.0292 lambdhf= 0.00977
+  cviso=17.5 vspo=5.64 lambdso=0.005 ccoul=1.36
+  av=11.91 bv=81.86 w0=17.70 bs=10.85 wspo=-3.1
   bso=160.0 ea=55.0 alphav=0.355 cs=0.01331 cwiso=29.0
   adv=238.0 rhfa=1.2490 rhfb=-0.00171 ahfa=0.638 ahfb=0.00219
   rv=1.2657 ava=0.6960 avb=-0.00021 rsa=1.1701 rsb=0.0041
