@@ -9,7 +9,7 @@
   CHARACTER*20 input_file
   CHARACTER*2 rela,SYMBOL(mxsym)
   !&Target and &fresco
-  INTEGER Nenergy,nstat,NBAND,Ngrid,Jmax
+  INTEGER Nenergy,nstat,NBAND,Ngrid,Jmax,absend
   REAL Z,A,eferm
   REAL BETA20,BETA40,BETA60
   REAL hcm,rmatch
@@ -125,7 +125,7 @@
   NAME = symbol(NINT(Z))//'000'
   WRITE(6,*) 'Z,A,name =',NINT(Z),NINT(A),symbol(NINT(Z))
   WRITE(NAME(3:5),'(i3.3)') NINT(A)
-  absend = 0.001
+  absend =-1 ! Complete J range until Jmax
   POTL = 'DOMEIC16'
   kpp = 1
   IF(NAME(1:1) ==' ') NAME(1:5)=NAME(2:5)//' '
@@ -249,7 +249,7 @@
        WRITE(1,76) hcmv,rmatch
      ENDIF
 !!!!!!!!!
-     WRITE(1,'(a,i4,a,f8.6)') '    jtmin=   0.0 jtmax=',Jmax,' absend= ',absend
+     WRITE(1,'(a,i4,a,i2)') '    jtmin=   0.0 jtmax=',Jmax,' absend= ',absend
      WRITE(1,14) nstat
      14	FORMAT('    thmin=0.0 thinc=2 thmax=000. iblock=',i3)
      75 FORMAT(' &Fresco  hcm= ',f6.3,' rmatch= ',f6.3,' rela=''''')
