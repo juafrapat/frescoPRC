@@ -7,7 +7,7 @@
   CHARACTER*8 POTL
   CHARACTER*100 fname,pname,h,potname
   CHARACTER*20 input_file
-  CHARACTER*2 rela,SYMBOL(mxsym)
+  CHARACTER*2 SYMBOL(mxsym)
   !&Target and &fresco
   INTEGER Nenergy,nstat,NBAND,Ngrid,Jmax,absend
   REAL Z,A,eferm
@@ -19,7 +19,7 @@
   REAL av,bv,w0,bs,wspo,bso,ea,alphav,cs,cwiso,adv
   REAL rhfa,rhfb,ahfa,ahfb,rv,ava,avb,rsa,rsb,as,rso,aso,rc,ac 
   !!!!! 
-  INTEGER za,shape,mu,i,sum_neg,sum_pos,gv,ii
+  INTEGER i,sum_neg,sum_pos,gv,ii
   CHARACTER*312 ELEMENTS,out
   CHARACTER*12 pottype(8)
   REAL,ALLOCATABLE:: Ener_levels(:), J_val(:),BETA_EFF(:),BETA_PAR(:),KBAND(:)
@@ -54,8 +54,9 @@
   READ(ELEMENTS,1021)(SYMBOL(i), i=1, mxsym)
   1021 FORMAT (300(A2,1X))
   450 CONTINUE
-  WRITE(6,*) 'Write the name of the input file:'
-  READ(*,*) input_file
+  call get_command_argument(1,input_file)
+  !WRITE(6,*) 'Write the name of the input file:'
+  !READ(*,*) input_file
   OPEN(40,STATUS='old',FILE=input_file,IOSTAT=err)
   IF(err .NE. 0) THEN
     WRITE(6,*) 'Error reading the name of the input file.'

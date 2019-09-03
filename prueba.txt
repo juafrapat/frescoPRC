@@ -1,0 +1,3 @@
+233U.inp
+238U.inp
+232Th.inp
