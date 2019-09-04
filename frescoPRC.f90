@@ -9,7 +9,8 @@
   CHARACTER*20 input_file
   CHARACTER*2 SYMBOL(mxsym)
   !&Target and &fresco
-  INTEGER Nenergy,nstat,NBAND,Ngrid,Jmax,absend
+  INTEGER Nenergy,nstat,NBAND,Ngrid,Jmax!,absend
+  REAL absend
   REAL Z,A,eferm
   REAL BETA20,BETA40,BETA60
   REAL hcm,rmatch
@@ -17,8 +18,8 @@
   ! Potential
   REAL v0a,v0b,lambdhf,cviso,vspo,lambdso,ccoul
   REAL av,bv,w0,bs,wspo,bso,ea,alphav,cs,cwiso,adv
-  REAL rhfa,rhfb,ahfa,ahfb,rv,ava,avb,rsa,rsb,as,rso,aso,rc,ac 
-  !!!!! 
+  REAL rhfa,rhfb,ahfa,ahfb,rv,ava,avb,rsa,rsb,as,rso,aso,rc,ac
+  !!!!!
   INTEGER i,sum_neg,sum_pos,gv,ii
   CHARACTER*312 ELEMENTS,out
   CHARACTER*12 pottype(8)
@@ -27,7 +28,7 @@
   INTEGER,ALLOCATABLE:: BAND(:),or_val(:), counts(:), indexx(:)
   INTEGER nexe,num_bands
   INTEGER err
-  INTEGER pythonFlag/0/ !False by default 
+  INTEGER pythonFlag/0/ !False by default
   REAL,TARGET,ALLOCATABLE:: jgsval(:), jexc(:)
   INTEGER,ALLOCATABLE:: index_gs(:), index_exc(:)
   INTEGER,ALLOCATABLE:: gs_Bparity(:), exc_Bparity(:)
@@ -35,7 +36,7 @@
   !!!!!
   NAMELIST /target/ Z,A,eferm,BETA20,BETA40,BETA60,nstat
   NAMELIST /fresco/ Jmax,hcm,rmatch,Ngrid,pythonFlag, &
-                    Nenergy  
+                    Nenergy
   NAMELIST /energies/ elab
   NAMELIST /state/ Et,Jval,Kval,NBAND,COEFF
   NAMELIST /potential/ v0a,v0b,lambdhf,cviso,vspo,lambdso,ccoul, &
@@ -83,7 +84,7 @@
             WRITE(*,*) 'Input read error while reading States: ', iosss
             STOP
         ENDIF
-    Ener_levels(i)=Et; J_val(i)=Jval; KBAND(i)=Kval; 
+    Ener_levels(i)=Et; J_val(i)=Jval; KBAND(i)=Kval;
     BAND(i)=NBAND; BETA_EFF(i)=COEFF
     indexx(i) = i
   ENDDO
@@ -92,9 +93,9 @@
   READ (40, NML=fresco, END=763, IOSTAT=ioss, ERR=763 )
 763   IF (ioss .ne. 0) then
         WRITE(*,*) 'Input read error while reading Fresco: ', ioss
-        STOP 
+        STOP
       ENDIF
-  
+
   ALLOCATE(elab(Nenergy))
   !READ(40,'(5E12.5)') (elab(i), i=1, Nenergy)
   READ (40, NML=energies, END=764, IOSTAT=iosss, ERR=764 )
@@ -104,7 +105,7 @@
      ENDIF
   ccoul = 1.36 ! Default
   rc = 1.2894 !Default
-  ac = 0.547 !Default 
+  ac = 0.547 !Default
                         !Dispersive parameters
   READ (40, NML=potential, END=765, IOSTAT=iosss, ERR=765 )
 765   IF (iosss .ne. 0) then
@@ -126,7 +127,8 @@
   NAME = symbol(NINT(Z))//'000'
   WRITE(6,*) 'Z,A,name =',NINT(Z),NINT(A),symbol(NINT(Z))
   WRITE(NAME(3:5),'(i3.3)') NINT(A)
-  absend =-1 ! Complete J range until Jmax
+  !absend =-1 ! Complete J range until Jmax
+  absend=0.001
   POTL = 'DOMEIC16'
   kpp = 1
   IF(NAME(1:1) ==' ') NAME(1:5)=NAME(2:5)//' '
@@ -140,8 +142,8 @@
         &           'Vso   rvso  avso    dvso    Wso   rwso  awso  rc    ac')
   NA = NINT(A); NZ = NINT(Z)
   ACroot = real(NA)**(1./3.)
- 
-                      
+
+
 
   ! Separation of parameters for G.S band  and excited bands
   !///////////////////////////////////////////////////////////////////////////////////
@@ -244,13 +246,14 @@
 !    frxy6j version of FRESCO has some problems using RELA=3d for low energies. After some tests, 1.20 MeV limit seems to work.
 !    Feb/2019 -> Antonio fixed the problem with low energies when rela=3d for frxy6j and included it in FRESCO v3.
 !    New version of FRESCO "v3.2" can be used with rela=c. Problems for low energies (same as for frxy6j).
-     IF(E.LE.1.20) THEN ! 
+     IF(E.LE.1.20) THEN !
        WRITE(1,75) hcmv,rmatch !!
      ELSE
        WRITE(1,76) hcmv,rmatch
      ENDIF
 !!!!!!!!!
-     WRITE(1,'(a,i4,a,i2)') '    jtmin=   0.0 jtmax=',Jmax,' absend= ',absend
+     !WRITE(1,'(a,i4,a,i2)') '    jtmin=   0.0 jtmax=',Jmax,' absend= ',absend
+     WRITE(1,'(a,i4,a,f8.6)') '    jtmin=   0.0 jtmax=',Jmax,' absend= ',absend
      WRITE(1,14) nstat
      14	FORMAT('    thmin=0.0 thinc=2 thmax=000. iblock=',i3)
      75 FORMAT(' &Fresco  hcm= ',f6.3,' rmatch= ',f6.3,' rela=''''')
@@ -293,7 +296,7 @@
         WRITE(1,31) kpp,13,7, 0.0, 1.0, 1.0, 0.0, 0.0, 0.0
       ENDIF
     ELSE IF (gs_Bparity(1) .LT. 0 ) THEN !Case G.S parity -1 (e.g 235U)
-      IF(sum_neg .EQ. 0) THEN  
+      IF(sum_neg .EQ. 0) THEN
         WRITE(1,31) kpp,13,7, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0
       ELSE IF(sum_pos .EQ. 0) THEN
         WRITE(1,31) kpp,13,7, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0
@@ -323,7 +326,7 @@
        WRITE(1,31) kpp,11,13, 0.,BETA20*RVOL2,0.0,BETA40*RVOL2, 0.,BETA60*RVOL2
        IF(n_exc .EQ. 0) GO TO 778
        IF(gs_Bparity(1) .GT. 0 ) THEN !Case G.S parity +1
-        IF(sum_neg .EQ. 0) THEN  
+        IF(sum_neg .EQ. 0) THEN
           WRITE(1,31) kpp,13,9, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0
         ELSE IF(sum_pos .EQ. 0) THEN
           WRITE(1,31) kpp,13,9, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0
@@ -331,7 +334,7 @@
           WRITE(1,31) kpp,13,9, 0.0, 1.0, 1.0, 0.0, 0.0, 0.0
         ENDIF
        ELSE IF (gs_Bparity(1) .LT. 0 ) THEN !Case G.S parity -1 (e.g 235U)
-        IF(sum_neg .EQ. 0) THEN  
+        IF(sum_neg .EQ. 0) THEN
           WRITE(1,31) kpp,13,9, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0
         ELSE IF(sum_pos .EQ. 0) THEN
           WRITE(1,31) kpp,13,9, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0
@@ -361,7 +364,7 @@
      WRITE(1,31) kpp,11,13, 0.0,BETA20*RSURF, 0.0,BETA40*RSURF, 0.0,BETA60*RSURF
      IF(n_exc .EQ. 0) GO TO 779
      IF(gs_Bparity(1) .GT. 0 ) THEN !Case G.S parity +1
-      IF(sum_neg .EQ. 0) THEN  
+      IF(sum_neg .EQ. 0) THEN
         WRITE(1,31) kpp,13,9, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0
       ELSE IF(sum_pos .EQ. 0) THEN
         WRITE(1,31) kpp,13,9, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0
@@ -369,7 +372,7 @@
         WRITE(1,31) kpp,13,9, 0.0, 1.0, 1.0, 0.0, 0.0, 0.0
       ENDIF
      ELSE IF (gs_Bparity(1) .LT. 0 ) THEN !Case G.S parity -1 (e.g 235U)
-      IF(sum_neg .EQ. 0) THEN  
+      IF(sum_neg .EQ. 0) THEN
         WRITE(1,31) kpp,13,9, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0
       ELSE IF(sum_pos .EQ. 0) THEN
         WRITE(1,31) kpp,13,9, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0
