@@ -28,7 +28,8 @@
 &State Et=7.5500E+02 Jval=4.5 Kval=1.5 NBAND=-4 COEFF=0.030 /
 
 &Fresco hcm=0.10 rmatch= 20.00 Jmax=20
-  Ngrid=41 pythonFlag=0 Nenergy=35 /
+  Ngrid=41 pythonFlag=0 Nenergy=35 absend= 0.001
+  relativ= 2 /
 
 &Energies 
   elab=0.001,0.002,0.004,0.006,0.008,0.01,0.02,0.04,

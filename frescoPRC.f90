@@ -9,7 +9,7 @@
   CHARACTER*20 input_file
   CHARACTER*2 SYMBOL(mxsym)
   !&Target and &fresco
-  INTEGER Nenergy,nstat,NBAND,Ngrid,Jmax!,absend
+  INTEGER Nenergy,nstat,NBAND,Ngrid,Jmax, relativ!,absend
   REAL absend
   REAL Z,A,eferm
   REAL BETA20,BETA40,BETA60
@@ -36,7 +36,7 @@
   !!!!!
   NAMELIST /target/ Z,A,eferm,BETA20,BETA40,BETA60,nstat
   NAMELIST /fresco/ Jmax,hcm,rmatch,Ngrid,pythonFlag, &
-                    Nenergy
+                    Nenergy, absend, relativ
   NAMELIST /energies/ elab
   NAMELIST /state/ Et,Jval,Kval,NBAND,COEFF
   NAMELIST /potential/ v0a,v0b,lambdhf,cviso,vspo,lambdso,ccoul, &
@@ -62,7 +62,8 @@
   IF(err .NE. 0) THEN
     WRITE(6,*) 'Error reading the name of the input file.'
     WRITE(6,*) 'Please, check the name of the file [it must include the extension].'
-    GO TO 450
+    !GO TO 450
+    STOP
   ENDIF
 
   !Reading input
@@ -97,6 +98,10 @@
       ENDIF
 
   ALLOCATE(elab(Nenergy))
+  IF (relativ.NE.1 .AND. relativ.NE.2 .AND. relativ.NE.3 ) THEN
+    WRITE(6,*) 'ERROR: relativ flag invalid, use: 1,2 o 3'
+    STOP
+  ENDIF
   !READ(40,'(5E12.5)') (elab(i), i=1, Nenergy)
   READ (40, NML=energies, END=764, IOSTAT=iosss, ERR=764 )
 764  IF (iosss .ne. 0) then
@@ -128,7 +133,7 @@
   WRITE(6,*) 'Z,A,name =',NINT(Z),NINT(A),symbol(NINT(Z))
   WRITE(NAME(3:5),'(i3.3)') NINT(A)
   !absend =-1 ! Complete J range until Jmax
-  absend=0.001
+  !absend=0.001
   POTL = 'DOMEIC16'
   kpp = 1
   IF(NAME(1:1) ==' ') NAME(1:5)=NAME(2:5)//' '
@@ -249,15 +254,26 @@
      IF(E.LE.1.20) THEN !
        WRITE(1,75) hcmv,rmatch !!
      ELSE
-       WRITE(1,76) hcmv,rmatch
+       IF (relativ.EQ.1) THEN 
+        WRITE(1,75) hcmv,rmatch 
+        GO TO 888
+       ENDIF
+       IF (relativ.EQ.2) THEN
+          WRITE(1,76) hcmv,rmatch
+       ELSE IF (relativ.EQ.3) THEN
+          WRITE(1,77) hcmv,rmatch
+       ENDIF
      ENDIF
 !!!!!!!!!
      !WRITE(1,'(a,i4,a,i2)') '    jtmin=   0.0 jtmax=',Jmax,' absend= ',absend
-     WRITE(1,'(a,i4,a,f8.6)') '    jtmin=   0.0 jtmax=',Jmax,' absend= ',absend
+     888 CONTINUE
+     WRITE(1,755) Jmax, absend
+     755 FORMAT ('    jtmin=   0.0 jtmax=',i4,' absend= ',f10.6)
      WRITE(1,14) nstat
      14	FORMAT('    thmin=0.0 thinc=2 thmax=000. iblock=',i3)
      75 FORMAT(' &Fresco  hcm= ',f6.3,' rmatch= ',f6.3,' rela=''''')
      76 FORMAT(' &Fresco  hcm= ',f6.3,' rmatch= ',f6.3,' rela=''c''') !RELA=3d(frxy6j) or RELA=c (v32) is neccesary to agree with OPTMAN.
+     77 FORMAT(' &Fresco  hcm= ',f6.3,' rmatch= ',f6.3,' rela=''3d''') 
      !WRITE(1,'(a)') '    chans= 1 smats= 2 xstabl= 1' !extra output information.
      WRITE(1,15) E
      15	FORMAT('    elab=',f10.3,' /')
