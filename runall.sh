@@ -17,7 +17,7 @@ grace_file=graphs.py
 outfile=outfile.out # all output files for all energies are saved here.
 
 archivo=prueba.txt #.txt with the name of all NAMELIST inputss
-generador=frescoPRC_mod_c #Modified generator to meet new input reading format (frescoPRC input.inp in console)
+generador=frescoPRC #Modified generator to meet new input reading format (frescoPRC input.inp in console)
 
 
 rm -f $destino; rm -f $XSECS; rm -f $XSECS2; rm -f $outfile;
@@ -26,7 +26,7 @@ rm -f $destino; rm -f $XSECS; rm -f $XSECS2; rm -f $outfile;
 
 while read este; do
   ini=${este%%.*}
-  final=$ini.xsec2
+  final=$ini.xsec4
   #echo $este >> $final
   #echo "Energy Elastic    Absorption   Reaction    Total    (MeV/mb)" > $final
   $generador "$este"

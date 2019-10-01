@@ -808,4 +808,17 @@ CONTAINS
     WRITE(94,'(a)') 'fig3.savefig("Total_CS.eps", format="eps")'
     CLOSE(94)
   END SUBROUTINE Graphs
+
+  DOUBLE PRECISION FUNCTION k_val(E,M)
+
+    DOUBLE PRECISION hc
+    REAL E, M, mu
+
+    hc = 197.32698d0 !MeV*fm
+    mu = (M/(M+1.0))*938.494
+    k_val = DSQRT((2.0d0*E*mu)/(hc*hc))
+
+    RETURN
+
+  END FUNCTION K_val
 END MODULE modulo

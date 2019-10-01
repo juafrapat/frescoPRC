@@ -20,7 +20,8 @@
   REAL av,bv,w0,bs,wspo,bso,ea,alphav,cs,cwiso,adv
   REAL rhfa,rhfb,ahfa,ahfb,rv,ava,avb,rsa,rsb,as,rso,aso,rc,ac
   !!!!!
-  INTEGER i,sum_neg,sum_pos,gv,ii
+  INTEGER i,sum_neg,sum_pos,gv,ii, j_cal
+  DOUBLE PRECISION k_number, nuc_rad
   CHARACTER*312 ELEMENTS,out
   CHARACTER*12 pottype(8)
   REAL,ALLOCATABLE:: Ener_levels(:), J_val(:),BETA_EFF(:),BETA_PAR(:),KBAND(:)
@@ -208,6 +209,8 @@
     ENDIF
   ENDDO
   !///////////////////////////////////////////////////////////////////////////////////
+
+
   DO k=1,Nenergy
      E = elab(k)
      hcmv = hcm
@@ -225,6 +228,17 @@
      RVOL = ACroot * RR
      RVOL2 = ACroot * RW
      RSURF = ACroot * RD
+     k_number = k_val(E,A)
+     nuc_rad = 1.3d0*((NINT(A) + 1)**(1.0/3.0))
+     j_cal = NINT(k_number*nuc_rad*2.2) !!! Solving problem with absend in FRESCO V3.3
+
+     IF (j_cal .LT. 10) THEN
+      Jmax = 10
+     ELSE IF ( j_cal .GE. 10 ) THEN
+      Jmax = j_cal
+     ENDIF
+
+     WRITE(66,*) E, k_number*nuc_rad,NINT(k_number*nuc_rad*2.2) 
      WRITE(10,10) E,VR,RR,AR, dv,drv,dav, W,RW,AW, VD,RVD,AVD, WD,RD,AD,VSO,RSO,ASO, dvso,WSO,WRSO,WASO, RC,AC
      10	FORMAT(f7.3, 6(f8.3,2f6.3),2f8.3,2f6.3,2f6.3)
      fname = 'fresco-00-'//POTL//'-s'//CHAR(ICHAR('0')+nexe)//',o'//CHAR(ICHAR('0')+sum_neg)//'-E0000000.in'
