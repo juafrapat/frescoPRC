@@ -6,4 +6,4 @@ A detailed description of the tool's input can be found in the file frescoPRC_do
 
 Since the tool were created to be compatible with a modified version of FRESCO, ...
 
-Contact: Juan Manuel Franco Patiño juafrapat@alum.us.es
+Contact: Juan Manuel Franco Patiño jfpatino@us.es
