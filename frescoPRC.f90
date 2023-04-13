@@ -9,7 +9,7 @@
   CHARACTER*20 input_file
   CHARACTER*2 SYMBOL(mxsym)
   !&Target and &fresco
-  INTEGER Nenergy,nstat,NBAND,Ngrid,Jmax, relativ!,absend
+  INTEGER Nenergy,nstat,NBAND,Ngrid,Jmax, relativ
   REAL absend
   REAL Z,A,eferm
   REAL BETA20,BETA40,BETA60
@@ -17,8 +17,8 @@
   REAL Et,Jval,Kval,COEFF
   ! Potential
   REAL v0a,v0b,lambdhf,cviso,vspo,lambdso,ccoul
-  REAL av,bv,w0,bs,wspo,bso,ea,alphav,cs,cwiso,adv
-  REAL rhfa,rhfb,ahfa,ahfb,rv,ava,avb,rsa,rsb,as,rso,aso,rc,ac
+  REAL av,bv,w0a,w0b,bs,wspo,bso,ea,alphav,cs,cwiso,adv
+  REAL rhfa,rhfb,ahfa,ahfb,rv,avv,rsa,rsb,as,rso,aso,rc,ac
   !!!!!
   INTEGER i,sum_neg,sum_pos,gv,ii, j_cal
   DOUBLE PRECISION k_number, nuc_rad
@@ -41,8 +41,8 @@
   NAMELIST /energies/ elab
   NAMELIST /state/ Et,Jval,Kval,NBAND,COEFF
   NAMELIST /potential/ v0a,v0b,lambdhf,cviso,vspo,lambdso,ccoul, &
-                      av,bv,w0,bs,wspo,bso,ea,alphav,cs,cwiso,adv, &
-                      rhfa,rhfb,ahfa,ahfb,rv,ava,avb,rsa,rsb,as, &
+                      av,bv,w0a,w0b,bs,wspo,bso,ea,alphav,cs,cwiso,adv, &
+                      rhfa,rhfb,ahfa,ahfb,rv,avv,rsa,rsb,as, &
                       rso,aso,rc,ac
   !------------------------------------------------------
   data pottype / 'REAL_VOLUME', 'REAL_VOLUME', 'IMAG_VOLUME','REAL_SURFACE', &
@@ -57,20 +57,14 @@
   1021 FORMAT (300(A2,1X))
   450 CONTINUE
   call get_command_argument(1,input_file)
-  !WRITE(6,*) 'Write the name of the input file:'
-  !READ(*,*) input_file
   OPEN(40,STATUS='old',FILE=input_file,IOSTAT=err)
   IF(err .NE. 0) THEN
     WRITE(6,*) 'Error reading the name of the input file.'
+    WRITE(6,*) "if your input is 'input.inp', you generate FRESCO's inputs typing in the terminal './frescoPRC input.inp'"
     WRITE(6,*) 'Please, check the name of the file [it must include the extension].'
-    !GO TO 450
     STOP
   ENDIF
 
-  !Reading input
-  !Old input style commented
-  !READ(40,'(F5.1,F10.5,F7.4)') Z,A,eferm
-  !READ(40,'(I2)') nstat
   READ (40, NML=target, END=761, IOSTAT=ios, ERR=761 )
 761   IF (ios .ne. 0) then
         WRITE(*,*) 'Input read error while reading Target: ', ios
@@ -80,7 +74,6 @@
   KBAND(nstat),or_val(nstat),indexx(nstat), STAT=err)
   CALL error(err,1)
   DO i=1,nstat
-    !READ(40,'(E12.5,F5.2,F4.2,I3,F7.5)') Ener_levels(i),J_val(i),KBAND(i),BAND(i),BETA_EFF(i)
     READ (40, NML=state, END=762, IOSTAT=iosss, ERR=762 )
 762     IF (iosss .ne. 0) THEN
             WRITE(*,*) 'Input read error while reading States: ', iosss
@@ -91,7 +84,6 @@
     indexx(i) = i
   ENDDO
   Ener_levels = Ener_levels/1000 !Reading in KeV but FRESCO reads it in MeV.
-  !READ(40,'(I3,F6.2,F7.2,I4,I3)') Jmax,hcm,rmatch,Ngrid,Nenergy
   READ (40, NML=fresco, END=763, IOSTAT=ioss, ERR=763 )
 763   IF (ioss .ne. 0) then
         WRITE(*,*) 'Input read error while reading Fresco: ', ioss
@@ -100,10 +92,9 @@
 
   ALLOCATE(elab(Nenergy))
   IF (relativ.NE.1 .AND. relativ.NE.2 .AND. relativ.NE.3 ) THEN
-    WRITE(6,*) 'ERROR: relativ flag invalid, use: 1,2 o 3'
+    WRITE(6,*) 'ERROR: relativ flag invalid, use: 1 (No relativistic correction),2 (fresco3.3) o 3 (frx6j)'
     STOP
   ENDIF
-  !READ(40,'(5E12.5)') (elab(i), i=1, Nenergy)
   READ (40, NML=energies, END=764, IOSTAT=iosss, ERR=764 )
 764  IF (iosss .ne. 0) then
         WRITE(*,*) 'Input read error while reading Energies: ', iosss
@@ -118,14 +109,6 @@
         WRITE(*,*) 'Input read error while reading potential: ', iosss
         STOP
       ENDIF
-  !READ(40,'(7E12.4)') v0a,v0b,lambdhf,cviso,vspo,lambdso,ccoul
-  !READ(40,'(6E12.4)') av,bv,w0,bs,Wso0,BBso
-  !READ(40,'(5E12.4)') Ea,alpha,CCs,Cwiso,Ades
-  !READ(40,'(7E12.4)') rHFl,rHFdep,aHFl,aHFdep,rv,avl,avdep
-  !READ(40,'(3E12.4)') rsl,rsdep,as
-  !!READ(40,'(4E12.4)') rso,aso,rc,ac
-  !READ(40,'(3E12.4)') BETA20,BETA40,BETA60
-  !READ(40,'(I1)') pythonFlag
   BETA_EFF = BETA_EFF/BETA20 ! input like OPTMAN, with x\beta_{20} factor.
 
   !Reading done
@@ -181,7 +164,7 @@
   ALLOCATE(jexc(n_exc),index_exc(n_exc),exc_Bparity(n_exc), &
   exc_KBAND(n_exc),BETA_PAR(n_exc),STAT=err)
   CALL error(1,err)
-  gv = 1; ii = 1 !indices
+  gv = 1; ii = 1
   DO i=1,nstat
     IF(ABS(BAND(i))==1) THEN ! G.S band MUST be |NBAND|=1 in the input.
       po=>jgsval(gv)
@@ -220,9 +203,9 @@
      CALL dispers2(A,Z,NTYPE,E,VR,RR,AR, dv,drv,dav, VD,RVD,AVD, &
                      W,RW,AW, WD,RD,AD, VSO,RSO,ASO, dvso, WSO,WRSO,WASO, &
                      v0a,v0b,lambdhf,cviso,vspo,lambdso,ccoul, &
-                     av,bv,w0,bs,cs,cwiso,wspo,bso, &
+                     av,bv,w0a,w0b,bs,cs,cwiso,wspo,bso, &
                      ea,alphav,eferm,adv, &
-                     rhfa,rhfb,ahfa,ahfb,rv,ava,avb, &
+                     rhfa,rhfb,ahfa,ahfb,rv,avv, &
                      rsa,rsb,as, &
                      rso,aso,rc,ac)
      RVOL = ACroot * RR
@@ -230,15 +213,15 @@
      RSURF = ACroot * RD
      k_number = k_val(E,A)
      nuc_rad = 1.3d0*((NINT(A) + 1)**(1.0/3.0))
-     j_cal = NINT(k_number*nuc_rad*2.2) !!! Solving problem with absend in FRESCO V3.3
+     j_cal = NINT(k_number*nuc_rad*2.4) !!! Solving the problem with absend in FRESCO V3.3??
 
-     IF (j_cal .LT. 10) THEN
-      Jmax = 10
-     ELSE IF ( j_cal .GE. 10 ) THEN
-      Jmax = j_cal
-     ENDIF
+     !IF (j_cal .LE. 8) THEN
+     ! Jmax = 14
+     !ELSE IF ( j_cal .GT. 8 ) THEN
+     ! Jmax = j_cal
+     !ENDIF
 
-     WRITE(66,*) E, k_number*nuc_rad,NINT(k_number*nuc_rad*2.2) 
+     WRITE(66,*) E, k_number*nuc_rad,NINT(k_number*nuc_rad*2.4) 
      WRITE(10,10) E,VR,RR,AR, dv,drv,dav, W,RW,AW, VD,RVD,AVD, WD,RD,AD,VSO,RSO,ASO, dvso,WSO,WRSO,WASO, RC,AC
      10	FORMAT(f7.3, 6(f8.3,2f6.3),2f8.3,2f6.3,2f6.3)
      fname = 'fresco-00-'//POTL//'-s'//CHAR(ICHAR('0')+nexe)//',o'//CHAR(ICHAR('0')+sum_neg)//'-E0000000.in'
@@ -279,7 +262,6 @@
        ENDIF
      ENDIF
 !!!!!!!!!
-     !WRITE(1,'(a,i4,a,i2)') '    jtmin=   0.0 jtmax=',Jmax,' absend= ',absend
      888 CONTINUE
      WRITE(1,755) Jmax, absend
      755 FORMAT ('    jtmin=   0.0 jtmax=',i4,' absend= ',f10.6)

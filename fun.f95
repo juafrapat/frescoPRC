@@ -7,7 +7,7 @@ MODULE modulo
   !* Subroutine wigner: Compute matrix element of Wigner's functions accoding to B.14 and B.19   *
   !*                    from PRC 94 6 (2016), 064605 (even and odd nuclei).                      *
   !*                                                                                             *
-  !* Dispersive functions pack: Calculation of Analytical dispersive integrals.                  *
+  !* Dispersive functions pack: Calculation of Analytical dispersive integrals by Roberto Capote *
   !*                                                                                             *
   !* Subroutine FORMFACT: Numerical calculation of form factors using                            *
   !*                      Gauss-Legendre quadrature. Those form factors are part of              *
@@ -15,7 +15,7 @@ MODULE modulo
   !*                                                                                             *
   !* Subroutine steps: Build the couplings between G.S band and excited bands for                *
   !*                   even and odd nuclei according to equations B.12 and B.16 from             *
-  !*                   PRC 94 6 (2016), 064605.                                                  *                    *
+  !*                   PRC 94 6 (2016), 064605.                                                  *                    
   !***********************************************************************************************
 CONTAINS
 
@@ -414,9 +414,9 @@ CONTAINS
   v,rvv,avv, dv,drv,dav, dvs,drs,das, w,rw,aw, wd,rwd,awd, &
   vso,rvso,avso,dvso, wso,rwso,awso, &
   Vlin,Vdep,lambdaHF,Cviso,Vso0,lambdaso,Ccoul, &
-  AAv,BBv,W0,BBs,CCs,Cwiso,Wso0,BBso, &
+  AAv,BBv,W0l,W0dep,BBs,CCs,Cwiso,Wso0,BBso, &
   Ea,alpha,eferm,Ades, &
-  rHFl,rHFdep,aHFl,aHFdep,rv,avl,avdep, &
+  rHFl,rHFdep,aHFl,aHFdep,rv,avpot, &
   rsl,rsdep,as, &
   rso,aso,rc,ac)
 
@@ -441,7 +441,8 @@ CONTAINS
     V0 = Vlin + Vdep*Au
     rHF = rHFL + rHFdep * Au
     aHF = aHFl + aHFdep * Au
-    av = avl + avdep * Au
+    W0 = W0l + W0dep*Au
+    av = avpot
     rs = rsl + rsdep * Au
     AAHF = V0 * (1 + (-1)**k * Cviso*asym/V0)
     AAs  = W0 * (1 + (-1)**k * Cwiso*asym/W0)
@@ -809,7 +810,7 @@ CONTAINS
     CLOSE(94)
   END SUBROUTINE Graphs
 
-  DOUBLE PRECISION FUNCTION k_val(E,M)
+  DOUBLE PRECISION FUNCTION k_val(E,M) !wave number: trying to fix absend=-1.00 problem in FRESCO v3.3
 
     DOUBLE PRECISION hc
     REAL E, M, mu
